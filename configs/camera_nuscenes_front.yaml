@@ -1,0 +1,9 @@
+# nuScenes CAM_FRONT intrinsics (first CAM_FRONT entry in v1.0-mini calibrated_sensor.json), 1600x900 images.
+# Images at another resolution are handled by scaling K.
+K:
+  - [1266.417203046554, 0.0, 816.2670197447984]
+  - [0.0, 1266.417203046554, 491.50706579294757]
+  - [0.0, 0.0, 1.0]
+calib_width: 1600
+calib_height: 900
+height_m: 1.51   # camera height above ground, used by the ground-plane fallback

@@ -1,0 +1,139 @@
+{
+  "env": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 191 Stepping 2, GenuineIntel",
+    "torch": "2.14.1+cpu",
+    "ultralytics": "8.4.177",
+    "torch_threads": 8,
+    "device": "cpu",
+    "cpu_affinity": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "openvino": "2026.4.1-22982-e213a147257-releases/2026/4"
+  },
+  "results": [
+    {
+      "format": "torch",
+      "imgsz": 512,
+      "size_mb": 5.5,
+      "median_ms": 52.36,
+      "inference_median_ms": 49.44,
+      "mean_ms": 53.98,
+      "p90_ms": 59.4,
+      "round_medians_ms": [
+        53.42,
+        52.17,
+        51.98
+      ],
+      "fps": 19.1
+    },
+    {
+      "format": "onnx",
+      "imgsz": 512,
+      "size_mb": 9.79,
+      "median_ms": 38.08,
+      "inference_median_ms": 33.75,
+      "mean_ms": 38.69,
+      "p90_ms": 40.57,
+      "round_medians_ms": [
+        38.04,
+        38.21,
+        38.03
+      ],
+      "fps": 26.3
+    },
+    {
+      "format": "openvino",
+      "imgsz": 512,
+      "size_mb": 9.99,
+      "median_ms": 41.72,
+      "inference_median_ms": 38.21,
+      "mean_ms": 43.13,
+      "p90_ms": 48.29,
+      "round_medians_ms": [
+        41.69,
+        41.56,
+        41.91
+      ],
+      "fps": 24.0
+    },
+    {
+      "format": "openvino-int8",
+      "imgsz": 512,
+      "size_mb": 3.3,
+      "median_ms": 29.12,
+      "inference_median_ms": 25.52,
+      "mean_ms": 30.17,
+      "p90_ms": 33.02,
+      "round_medians_ms": [
+        29.51,
+        28.94,
+        29.11
+      ],
+      "fps": 34.3
+    },
+    {
+      "format": "torch",
+      "imgsz": 640,
+      "size_mb": 5.5,
+      "median_ms": 70.06,
+      "inference_median_ms": 66.24,
+      "mean_ms": 71.97,
+      "p90_ms": 77.87,
+      "round_medians_ms": [
+        70.04,
+        70.41,
+        69.95
+      ],
+      "fps": 14.3
+    },
+    {
+      "format": "onnx",
+      "imgsz": 640,
+      "size_mb": 9.85,
+      "median_ms": 57.08,
+      "inference_median_ms": 51.97,
+      "mean_ms": 58.34,
+      "p90_ms": 62.09,
+      "round_medians_ms": [
+        56.99,
+        57.22,
+        56.99
+      ],
+      "fps": 17.5
+    },
+    {
+      "format": "openvino",
+      "imgsz": 640,
+      "size_mb": 10.03,
+      "median_ms": 65.06,
+      "inference_median_ms": 59.99,
+      "mean_ms": 66.89,
+      "p90_ms": 72.5,
+      "round_medians_ms": [
+        65.27,
+        65.03,
+        64.94
+      ],
+      "fps": 15.4
+    },
+    {
+      "format": "openvino-int8",
+      "imgsz": 640,
+      "size_mb": 3.34,
+      "median_ms": 43.54,
+      "inference_median_ms": 38.47,
+      "mean_ms": 47.12,
+      "p90_ms": 53.29,
+      "round_medians_ms": [
+        43.96,
+        42.98,
+        43.82
+      ],
+      "fps": 23.0
+    }
+  ]
+}

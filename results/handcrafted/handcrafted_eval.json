@@ -1,0 +1,28 @@
+{
+  "handcrafted_stop_sign_mtsd": {
+    "AP50": 0.1598,
+    "max_recall": 0.3457,
+    "n_gt": 81,
+    "n_det": 111,
+    "ms_per_image": 12.8
+  },
+  "handcrafted_cone_nuimages": {
+    "AP50": 0.0068,
+    "max_recall": 0.0695,
+    "n_gt": 4918,
+    "n_det": 9670,
+    "ms_per_image": 8.3
+  },
+  "cnn_stop_sign_mtsd": {
+    "AP50": 0.8123,
+    "max_recall": 0.8889,
+    "n_gt": 81,
+    "n_det": 336
+  },
+  "cnn_plus_verifier_stop_sign_mtsd": {
+    "AP50": 0.6873,
+    "max_recall": 0.7407,
+    "n_gt": 81,
+    "n_det": 258
+  }
+}

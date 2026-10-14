@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+scratch/
+data/
+runs/
+*.pt
+*.onnx
+
+# ship the final and pruned models (small); keep other checkpoints local
+!weights/best.pt
+!weights/best_pruned30.pt

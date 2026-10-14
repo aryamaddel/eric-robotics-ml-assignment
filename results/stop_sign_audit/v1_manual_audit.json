@@ -1,0 +1,12 @@
+{
+  "description": "Manual review of every stop_sign detection (conf >= 0.4, imgsz 960) made by model v1 (yolo26n_960) on the 1,650 nuImages test frames, which carry no human stop-sign labels. Index = rank by confidence.",
+  "model": "yolo26n_960 (v1: COCO-teacher stop-sign pseudo-labels on nuImages train)",
+  "total_detections": 79,
+  "stop_sign": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 19, 22, 26, 28, 36, 37, 38, 44, 46, 47, 48, 49, 50, 51, 56, 57, 59, 63, 66, 71, 72, 73, 78],
+  "stop_sign_uncertain_subset": [26, 28, 57, 59, 72, 73],
+  "no_entry": [0, 4, 18, 20, 21, 23, 24, 25, 27, 29, 30, 31, 32, 33, 34, 35, 39, 40, 41, 42, 43, 53, 54, 55, 62, 64, 65, 68, 69, 70, 74, 76, 77],
+  "sign_back": [15, 17, 45, 52, 60, 67],
+  "other": [58, 61, 75],
+  "counts": {"stop_sign": 37, "no_entry": 33, "sign_back": 6, "other": 3},
+  "precision_estimate": 0.468
+}

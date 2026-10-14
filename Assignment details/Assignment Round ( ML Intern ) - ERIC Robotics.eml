@@ -1,0 +1,303 @@
+Delivered-To: aryamaddel@gmail.com
+Received: by 2002:a05:7110:3035:b0:367:ea3b:acc2 with SMTP id u21csp38001gea;
+        Mon, 12 Oct 2026 21:24:31 -0700 (PDT)
+X-Received: by 2002:a05:7300:7aa2:b0:351:a9b1:73c with SMTP id 5a478bee46e88-3537deccaffmr16580747eec.2.1791865471470;
+        Mon, 12 Oct 2026 21:24:31 -0700 (PDT)
+ARC-Seal: i=2; a=rsa-sha256; t=1791865471; cv=pass;
+        d=google.com; s=arc-20260327;
+        b=SI2v4cgdwi3nXLpnaT80hY7dl5FH0qyQy/7sgVAgtf8Pl6kvNsYw/0ErW1BndRUmkj
+         G9sWCJeo2CHbLp9uXLUiqNGWFeNE+FiuzU3o9SZopW0xWru4qwxsk54tS8RD48dvnEXv
+         A2q3sdvJ7flJptzWTF2g6FaWyjROJVIl8fc14zgKwON7q8GEZuXmJWy98ZGipOHs1fD2
+         IMMJ61cNpT4Us526MmPV3WtjqtHLQGPNpiYQHtVJ+aeETLYvmk3U+DohwSdkubcbej87
+         ozdbqzql1pDPOznAX9lEUDp7s0nVfiXZIIHmrAO4rAHvbP6eWEuAx+uHPga+k2SPwzaa
+         bjBQ==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=feedback-id:tm-mail-jid:original-envelope-id:mime-version:subject
+         :message-id:to:from:date:dkim-signature;
+        bh=Y3aEJxzgCS8nQrnU8KDqlJbvFlU6ZAVnRQLhVVkTRPg=;
+        fh=7jUucBWdzXlxBH46nSbZWpIo/o+08w6Pieb5e+zmyR8=;
+        b=c8n+m267VFIEhRAj6bULzEkJceRjkEDA//Hz0AgjTz+Q/spW8EAoTxX6rDR9KJlL7E
+         zuLa4eym6VtJVjmOJGnkeaiYwmfJ3b2cCShVQufGrUwiJAhk3yWVsrIz4yYp2mTROP9Y
+         ovCJNK6BCACpTgDf9QsPnCsNgyodunwqmz7WN0RDOkugsWqajnSJemtmXGHZVC7IfYM1
+         M22gYn4TWwFwHn3wRriVF1vyT5hlY1I1gmihG5XKsiaV4uy0X5zUkFhG8qYJ+LLsL2oL
+         3mdLsZdclpnFsZz5Suzv5ODgPaUk4UnySMoYK/6aixlagyGKFWy9omUGAPgrd9FwqHuk
+         b/4A==;
+        dara=google.com
+ARC-Authentication-Results: i=2; mx.google.com;
+       dkim=pass header.i=@ericrobotics.com header.s=1763708990144 header.b=VLU1a3p0;
+       arc=pass (i=1 spf=pass spfdomain=sender.zohorecruit.in dkim=pass dkdomain=ericrobotics.com dmarc=pass fromdomain=ericrobotics.com>);
+       spf=pass (google.com: domain of bounces+f9e4dc40-c6bd-11f1-8159-cabf48e1bf81_vt1@sender.zohorecruit.in designates 103.117.159.124 as permitted sender) smtp.mailfrom=bounces+f9e4dc40-c6bd-11f1-8159-cabf48e1bf81_vt1@sender.zohorecruit.in
+Return-Path: <bounces+f9e4dc40-c6bd-11f1-8159-cabf48e1bf81_vt1@sender.zohorecruit.in>
+Received: from sender-g1-124.zohomail360.in (sender-g1-124.zohomail360.in. [103.117.159.124])
+        by mx.google.com with ESMTPS id 5a478bee46e88-35c4e39a4a7si3229745eec.75.2026.10.12.21.24.30
+        for <aryamaddel@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 12 Oct 2026 21:24:31 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounces+f9e4dc40-c6bd-11f1-8159-cabf48e1bf81_vt1@sender.zohorecruit.in designates 103.117.159.124 as permitted sender) client-ip=103.117.159.124;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@ericrobotics.com header.s=1763708990144 header.b=VLU1a3p0;
+       arc=pass (i=1 spf=pass spfdomain=sender.zohorecruit.in dkim=pass dkdomain=ericrobotics.com dmarc=pass fromdomain=ericrobotics.com>);
+       spf=pass (google.com: domain of bounces+f9e4dc40-c6bd-11f1-8159-cabf48e1bf81_vt1@sender.zohorecruit.in designates 103.117.159.124 as permitted sender) smtp.mailfrom=bounces+f9e4dc40-c6bd-11f1-8159-cabf48e1bf81_vt1@sender.zohorecruit.in
+ARC-Seal: i=1; a=rsa-sha256; t=1791865469; cv=none; 
+	d=zohomail360.in; s=zohoarc; 
+	b=Adu8yNoon0E+skRwHNogvYAlDwIWM98ZlTmcqqVhboLgEqbHMz2+kWR7iohu6ybxdQLIO1bVpCzgOji5LxRAnMStobZFziOJtg+VJ6L3VPXvr1lvQwt90gz7L4weyReuJoXUfd0WPQTNrdUrWA68Yk+Af6cirOdXClmpO4TSsuU=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail360.in; s=zohoarc; 
+	t=1791865469; h=Content-Type:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To:Cc; 
+	bh=Y3aEJxzgCS8nQrnU8KDqlJbvFlU6ZAVnRQLhVVkTRPg=; 
+	b=IlHbPODSR5/ySPmcJWuNZpAYBPTmc1FWijnfKokPOFySaOedKICuvoGbV79jfz16yTEK7PSW97UkPdnnv6wKBhi9GJPgjSYqgDIKuztCds2yoAQ2AhNwz04zeT4ELff5xcWE5Eie129iu9yuxXowT1BvsB/5R/Vxrge8iIMGuY4=
+ARC-Authentication-Results: i=1; mx.zohomail360.in;
+	dkim=pass  header.i=ericrobotics.com;
+	spf=pass  smtp.mailfrom=bounces+f9e4dc40-c6bd-11f1-8159-cabf48e1bf81_vt1@sender.zohorecruit.in;
+	dmarc=pass header.from=<info@ericrobotics.com>
+Received: by mx.zoho.in with SMTPS id 1791865468765310.8970608983054;
+	Tue, 13 Oct 2026 09:54:28 +0530 (IST)
+DKIM-Signature: a=rsa-sha256; b=VLU1a3p0AvT1KXWooB13H+nu/U5Ybb0ycfYGTvAQpohPzOZMG7E96T44zQfXgDwW0OspBljsJp8nK6fOsKXLqOgkBHwAp+hDH0iKgAdxVR4lx8vbt0PUTR9iwQkfMtQ13ctVdnWP3tFUPoWB925iNKNfNaT1eTjusZwKS9AD57s=; c=relaxed/relaxed; s=1763708990144; d=ericrobotics.com; v=1; bh=Y3aEJxzgCS8nQrnU8KDqlJbvFlU6ZAVnRQLhVVkTRPg=; h=date:from:to:message-id:subject:mime-version:content-type:date:from:to:message-id:subject;
+Date: Tue, 13 Oct 2026 09:54:28 +0530 (IST)
+From: ERIC Robotics ERIC Robotics <info@ericrobotics.com>
+To:  <aryamaddel@gmail.com>
+Message-ID: <2518b.df847630b.m1.f9e4dc40-c6bd-11f1-8159-cabf48e1bf81.1a133813004@sender.zohorecruit.in>
+Subject: Assignment Round ( ML Intern ) - ERIC Robotics
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_8495944_874930734.1791865468698"
+X-Transmail: transmail
+Original-Envelope-Id: 2518b.df847630b.m1.f9e4dc40-c6bd-11f1-8159-cabf48e1bf81.1a133813004
+X-JID: 2518b.df847630b.m1.f9e4dc40-c6bd-11f1-8159-cabf48e1bf81.1a133813004
+TM-MAIL-JID: 2518b.df847630b.m1.f9e4dc40-c6bd-11f1-8159-cabf48e1bf81.1a133813004
+X-App-Message-ID: 2518b.df847630b.m1.f9e4dc40-c6bd-11f1-8159-cabf48e1bf81.1a133813004
+X-Report-Abuse: <abuse+2518b.df847630b.m1.f9e4dc40-c6bd-11f1-8159-cabf48e1bf81.1a133813004@zohocpaas.in>
+Feedback-ID: zu08011229b2e4deb6281eca3787e6196b0000912bbfbcd654c22dc689a051a0ee5200ce0a477f53fd9b86a02d06:ZohoMail
+X-Zoho-CM-AccountID: e06bce0e1afa5eba694da28f688bb1d6f847e44a429a40dc93cd9afd1b3a1699
+X-MailClient: External
+
+------=_Part_8495944_874930734.1791865468698
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Dear Arya Mandar=E2=80=8B,Thank you for your interest in the Machine Learni=
+ng at ERIC Robotics.As the next step in the selection process, please compl=
+ete the technical assignment shared below. You will have 2 days to complete=
+ the assignment after accepting it.Assignment Link : https://classroom.gith=
+ub.com/a/bKlKr6WpImportant: Assignment Access IssuesIf you are unable to ac=
+cess your assignment repository or face issues such as not seeing updates o=
+r being unable to push changes, please follow the steps below:1.     Check =
+your email (linked to your GitHub account) for a GitHub invitation to the E=
+RICR Recruitment organization.2.     Click Accept Invitation (if pending).3=
+.     The above link is the revised assignment link =E2=80=94 please prefer=
+ using this link.Submission Guidelines (Mandatory)We have noticed that many=
+ submissions have different GitHub usernames, which makes it difficult for =
+us to identify your work. To help us differentiate submissions, please foll=
+ow the guidelines below:1.     Email Confirmation (Reply to this Email) Onc=
+e you complete the assignment, reply to this email confirming your submissi=
+on and mention:o   Your full nameo   Your GitHub username While replying, p=
+lease keep the following email IDs in CC:o   parmeet.software@ericrobotics.=
+como   shubham.petkar@ericrobotics.como   abhishek.singh@ericrobotics.commu=
+skan.sohaney@ericrobotics.com2.     README Update In your README.md file:o =
+  Include your full name in the assignment title or headero   Add a Contact=
+ Information section at the bottom containing:=C2=A7  Name=C2=A7  Contact n=
+umber=C2=A7  Email addressReference: Please refer to the attached images be=
+low for an example of the correct README.md format, including name placemen=
+t and contact information.For Example:- 1.     Contact info Section: At the=
+ bottom of your Readme.md file, add a contact info section containing your =
+name, contact number, and email address.Please ensure all guidelines are fo=
+llowed. Submissions not adhering to the above will not be considered comple=
+te.Best regards, ERIC Robotics =E2=80=93 Talent Team=E2=9C=89=EF=B8=8F hr@e=
+ricrobotics.com =F0=9F=8C=90 www.ericrobotics.com 17/8, D1 Block, MIDC Chin=
+chwad, Pune - 411019, Maharashtra
+
+------=_Part_8495944_874930734.1791865468698
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><head><meta http-equiv=3D"Content-Type" content=3D"text/html;charset=
+=3DUTF-8"></head><body><div style=3D"font-family:verdana; font-size:13.3333=
+px; line-height:normal" id=3D"defaultFS"><div><p style=3D"margin-top:0px"><=
+br></p></div></div><p style=3D"margin-top:0px"><span style=3D"">Dear <b>Ary=
+a Mandar=E2=80=8B</b>,</span><br></p><p style=3D"margin-top:0px"><span styl=
+e=3D"">Thank you for your interest in the <b>Machine Learning </b>at <b>ERI=
+C Robotics</b>.</span><br></p><p style=3D"margin-top:0px"><span style=3D"">=
+As the next step in the selection process, please complete the technical as=
+signment shared below. You will have <b>2 days</b> to complete the assignme=
+nt after accepting it.</span><br></p><p style=3D"margin-top:0px"><b><span s=
+tyle=3D"">Assignment Link :</span></b><span style=3D""><br> </span><span la=
+ng=3D"EN-US"><a href=3D"https://classroom.github.com/a/bKlKr6Wp" target=3D"=
+_blank">https://classroom.github.com/a/bKlKr6Wp</a></span></p><div><span st=
+yle=3D""><hr></span><br></div><p style=3D"margin-top:0px"><b><span style=3D=
+"">Important: Assignment Access Issues</span></b><br></p><p style=3D"margin=
+-top:0px"><span style=3D"">If you are unable to access your assignment repo=
+sitory or face issues such as not seeing updates or being unable to push ch=
+anges, please follow the steps below:</span><br></p><p style=3D"margin-left=
+:36pt; text-indent:-18pt; margin-top:0px"><span style=3D""><span style=3D""=
+>1.<span style=3D"font-family:&quot;Times New Roman&quot;" class=3D"font"><=
+span style=3D"font-size:7pt; font-style:normal; font-variant:normal; font-s=
+ize-adjust:none; font-weight:normal; font-stretch:normal; line-height:norma=
+l" class=3D"size">&nbsp;&nbsp;&nbsp;&nbsp; </span></span></span></span><spa=
+n style=3D"">Check your email (linked to your GitHub account) for a <b>GitH=
+ub invitation</b> to the <b>ERICR Recruitment</b> organization.</span><br><=
+/p><p style=3D"margin-left:36pt; text-indent:-18pt; margin-top:0px"><span s=
+tyle=3D""><span style=3D"">2.<span style=3D"font-family:&quot;Times New Rom=
+an&quot;" class=3D"font"><span style=3D"font-size:7pt; font-style:normal; f=
+ont-variant:normal; font-size-adjust:none; font-weight:normal; font-stretch=
+:normal; line-height:normal" class=3D"size">&nbsp;&nbsp;&nbsp;&nbsp; </span=
+></span></span></span><span style=3D"">Click <b>Accept Invitation</b> (if p=
+ending).</span><br></p><p style=3D"margin-left:36pt; text-indent:-18pt; mar=
+gin-top:0px"><span style=3D""><span style=3D"">3.<span style=3D"font-family=
+:&quot;Times New Roman&quot;" class=3D"font"><span style=3D"font-size:7pt; =
+font-style:normal; font-variant:normal; font-size-adjust:none; font-weight:=
+normal; font-stretch:normal; line-height:normal" class=3D"size">&nbsp;&nbsp=
+;&nbsp;&nbsp; </span></span></span></span><span style=3D"">The <b>above lin=
+k is the revised assignment link</b> =E2=80=94 please prefer using this lin=
+k.</span><br></p><div><span style=3D""><hr></span><br></div><p style=3D"mar=
+gin-top:0px"><b><span style=3D"">Submission Guidelines (Mandatory)</span></=
+b><br></p><p style=3D"margin-top:0px"><span style=3D"">We have noticed that=
+ many submissions have different GitHub usernames, which makes it difficult=
+ for us to identify your work. To help us differentiate submissions, please=
+ follow the guidelines below:</span><br></p><p style=3D"margin-left:36pt; t=
+ext-indent:-18pt; margin-top:0px"><span style=3D""><span style=3D"">1.<span=
+ style=3D"font-family:&quot;Times New Roman&quot;" class=3D"font"><span sty=
+le=3D"font-size:7pt; font-style:normal; font-variant:normal; font-size-adju=
+st:none; font-weight:normal; font-stretch:normal; line-height:normal" class=
+=3D"size">&nbsp;&nbsp;&nbsp;&nbsp; </span></span></span></span><b><span sty=
+le=3D"">Email Confirmation (Reply to this Email)</span></b><span style=3D""=
+><br> Once you complete the assignment, <b>reply to this email</b> confirmi=
+ng your submission and mention:</span></p><p style=3D"margin-left:72pt; tex=
+t-indent:-18pt; margin-top:0px"><span style=3D"font-family:&quot;Courier Ne=
+w&quot;" class=3D"font"><span style=3D"font-size:10pt" class=3D"size"><span=
+ style=3D"">o<span style=3D"font-family:&quot;Times New Roman&quot;" class=
+=3D"font"><span style=3D"font-size:7pt; font-style:normal; font-variant:nor=
+mal; font-size-adjust:none; font-weight:normal; font-stretch:normal; line-h=
+eight:normal" class=3D"size">&nbsp;&nbsp; </span></span></span></span></spa=
+n><span style=3D"">Your <b>full name</b></span><br></p><p style=3D"margin-l=
+eft:72pt; text-indent:-18pt; margin-top:0px"><span style=3D"font-family:&qu=
+ot;Courier New&quot;" class=3D"font"><span style=3D"font-size:10pt" class=
+=3D"size"><span style=3D"">o<span style=3D"font-family:&quot;Times New Roma=
+n&quot;" class=3D"font"><span style=3D"font-size:7pt; font-style:normal; fo=
+nt-variant:normal; font-size-adjust:none; font-weight:normal; font-stretch:=
+normal; line-height:normal" class=3D"size">&nbsp;&nbsp; </span></span></spa=
+n></span></span><span style=3D"">Your <b>GitHub username</b><br> While repl=
+ying, please <b>keep the following email IDs in CC</b>:</span></p><p style=
+=3D"margin-left:72pt; text-indent:-18pt; margin-top:0px"><span style=3D"fon=
+t-family:&quot;Courier New&quot;" class=3D"font"><span style=3D"font-size:1=
+0pt" class=3D"size"><span style=3D"">o<span style=3D"font-family:&quot;Time=
+s New Roman&quot;" class=3D"font"><span style=3D"font-size:7pt; font-style:=
+normal; font-variant:normal; font-size-adjust:none; font-weight:normal; fon=
+t-stretch:normal; line-height:normal" class=3D"size">&nbsp;&nbsp; </span></=
+span></span></span></span><span style=3D""><a href=3D"mailto:parmeet.softwa=
+re@ericrobotics.com" target=3D"_blank">parmeet.software@ericrobotics.com</a=
+></span><br></p><p style=3D"margin-left:72pt; text-indent:-18pt; margin-top=
+:0px"><span style=3D"font-family:&quot;Courier New&quot;" class=3D"font"><s=
+pan style=3D"font-size:10pt" class=3D"size"><span style=3D"">o<span style=
+=3D"font-family:&quot;Times New Roman&quot;" class=3D"font"><span style=3D"=
+font-size:7pt; font-style:normal; font-variant:normal; font-size-adjust:non=
+e; font-weight:normal; font-stretch:normal; line-height:normal" class=3D"si=
+ze">&nbsp;&nbsp; </span></span></span></span></span><span style=3D""><a hre=
+f=3D"mailto:shubham.petkar@ericrobotics.com" target=3D"_blank">shubham.petk=
+ar@ericrobotics.com</a></span><br></p><p style=3D"margin-left:72pt; text-in=
+dent:-18pt; margin-top:0px"><span style=3D"font-family:&quot;Courier New&qu=
+ot;" class=3D"font"><span style=3D"font-size:10pt" class=3D"size"><span sty=
+le=3D"">o<span style=3D"font-family:&quot;Times New Roman&quot;" class=3D"f=
+ont"><span style=3D"font-size:7pt; font-style:normal; font-variant:normal; =
+font-size-adjust:none; font-weight:normal; font-stretch:normal; line-height=
+:normal" class=3D"size">&nbsp;&nbsp; </span></span></span></span></span><sp=
+an style=3D""><a href=3D"mailto:abhishek.singh@ericrobotics.com" target=3D"=
+_blank">abhishek.singh@ericrobotics.com</a></span><br></p><ul><li><span><sp=
+an style=3D""><a href=3D"mailto:muskan.sohaney@ericrobotics.com" target=3D"=
+_blank">muskan.sohaney@ericrobotics.com</a></span><br></span></li></ul><p s=
+tyle=3D"margin-left:36pt; text-indent:-18pt; margin-top:0px"><span style=3D=
+""><span style=3D"">2.<span style=3D"font-family:&quot;Times New Roman&quot=
+;" class=3D"font"><span style=3D"font-size:7pt; font-style:normal; font-var=
+iant:normal; font-size-adjust:none; font-weight:normal; font-stretch:normal=
+; line-height:normal" class=3D"size">&nbsp;&nbsp;&nbsp;&nbsp; </span></span=
+></span></span><b><span style=3D"">README Update</span></b><span style=3D""=
+><br> In your README.md file:</span></p><p style=3D"margin-left:72pt; text-=
+indent:-18pt; margin-top:0px"><span style=3D"font-family:&quot;Courier New&=
+quot;" class=3D"font"><span style=3D"font-size:10pt" class=3D"size"><span s=
+tyle=3D"">o<span style=3D"font-family:&quot;Times New Roman&quot;" class=3D=
+"font"><span style=3D"font-size:7pt; font-style:normal; font-variant:normal=
+; font-size-adjust:none; font-weight:normal; font-stretch:normal; line-heig=
+ht:normal" class=3D"size">&nbsp;&nbsp; </span></span></span></span></span><=
+span style=3D"">Include your <b>full name</b> in the assignment title or he=
+ader</span><br></p><p style=3D"margin-left:72pt; text-indent:-18pt; margin-=
+top:0px"><span style=3D"font-family:&quot;Courier New&quot;" class=3D"font"=
+><span style=3D"font-size:10pt" class=3D"size"><span style=3D"">o<span styl=
+e=3D"font-family:&quot;Times New Roman&quot;" class=3D"font"><span style=3D=
+"font-size:7pt; font-style:normal; font-variant:normal; font-size-adjust:no=
+ne; font-weight:normal; font-stretch:normal; line-height:normal" class=3D"s=
+ize">&nbsp;&nbsp; </span></span></span></span></span><span style=3D"">Add a=
+ <b>Contact Information</b> section at the bottom containing:</span><br></p=
+><p style=3D"margin-left:108pt; text-indent:-18pt; margin-top:0px"><span st=
+yle=3D"font-family:Wingdings" class=3D"font"><span style=3D"font-size:10pt"=
+ class=3D"size"><span style=3D"">=C2=A7<span style=3D"font-family:&quot;Tim=
+es New Roman&quot;" class=3D"font"><span style=3D"font-size:7pt; font-style=
+:normal; font-variant:normal; font-size-adjust:none; font-weight:normal; fo=
+nt-stretch:normal; line-height:normal" class=3D"size">&nbsp; </span></span>=
+</span></span></span><span style=3D"">Name</span><br></p><p style=3D"margin=
+-left:108pt; text-indent:-18pt; margin-top:0px"><span style=3D"font-family:=
+Wingdings" class=3D"font"><span style=3D"font-size:10pt" class=3D"size"><sp=
+an style=3D"">=C2=A7<span style=3D"font-family:&quot;Times New Roman&quot;"=
+ class=3D"font"><span style=3D"font-size:7pt; font-style:normal; font-varia=
+nt:normal; font-size-adjust:none; font-weight:normal; font-stretch:normal; =
+line-height:normal" class=3D"size">&nbsp; </span></span></span></span></spa=
+n><span style=3D"">Contact number</span><br></p><p style=3D"margin-left:108=
+pt; text-indent:-18pt; margin-top:0px"><span style=3D"font-family:Wingdings=
+" class=3D"font"><span style=3D"font-size:10pt" class=3D"size"><span style=
+=3D"">=C2=A7<span style=3D"font-family:&quot;Times New Roman&quot;" class=
+=3D"font"><span style=3D"font-size:7pt; font-style:normal; font-variant:nor=
+mal; font-size-adjust:none; font-weight:normal; font-stretch:normal; line-h=
+eight:normal" class=3D"size">&nbsp; </span></span></span></span></span><spa=
+n style=3D"">Email address</span><br></p><p style=3D"margin-top:0px"><b><sp=
+an style=3D"">Reference:</span></b><span style=3D""><br> Please refer to th=
+e <b>attached images below</b> for an example of the correct README.md form=
+at, including name placement and contact information.</span></p><p style=3D=
+"margin-top:0px"><b><span style=3D"">For Example:-</span></b><br></p><p sty=
+le=3D"margin-top:0px"><span style=3D""></span><span style=3D"">&nbsp;<img s=
+rc=3D"https://recruit.zoho.in/recruit/viewInLineImage?fileContent=3D7762d22=
+affbe9fabe2a66cab5876344472967b0d735e02ab7d9db84dd3184db30787ba8409f634b881=
+5722c75f8e1051c0befb2cef008c4a1a7fef4d40b0b6ad" style=3D""><br></span><br><=
+/p><p style=3D"margin-top:0px"><span style=3D"">1.&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;<b>Contact info Section:</b>&nbsp;At the bottom of your&nbsp;Readme.md=
+&nbsp;file, add a contact info section containing your&nbsp;<b>name, contac=
+t number, and email address</b>.</span><br></p><p style=3D"margin-top:0px">=
+<span style=3D""></span><img src=3D"https://recruit.zoho.in/recruit/viewInL=
+ineImage?fileContent=3Dd88462c2775adb65e0cc627302ebf1c55730fcb09a4b81814060=
+eb67fa03548777ff033a863da9f2c0fc5df505c77c14614e579c18ebc69c4e8c02716a7318d=
+1" style=3D""><br></p><p style=3D"margin-top:0px"><span style=3D"">Please e=
+nsure all guidelines are followed. Submissions not adhering to the above wi=
+ll <b>not be considered complete</b>.</span><br></p><p style=3D"margin-top:=
+0px"><span style=3D"">Best regards,<br> <b>ERIC Robotics =E2=80=93 Talent T=
+eam</b></span></p><div style=3D"font-family:verdana; font-size:13.3333px; l=
+ine-height:normal" id=3D"defaultFS"><div><p style=3D"margin-top:0px"><b><sp=
+an style=3D"font-family:&quot;times new roman&quot;, times, serif, sans-ser=
+if" class=3D"font"><br></span><span style=3D"font-family:&quot;Segoe UI Emo=
+ji&quot;, sans-serif" class=3D"font"><span style=3D"font-family:&quot;times=
+ new roman&quot;, times, serif, sans-serif" class=3D"font">=E2=9C=89=EF=B8=
+=8F</span></span><span style=3D"font-family:&quot;times new roman&quot;, ti=
+mes, serif, sans-serif" class=3D"font">&nbsp;</span><a target=3D"_blank" hr=
+ef=3D"mailto:hr@ericrobotics.com"><span style=3D"font-family:&quot;times ne=
+w roman&quot;, times, serif, sans-serif" class=3D"font">hr@ericrobotics.com=
+</span></a><span style=3D"font-family:&quot;times new roman&quot;, times, s=
+erif, sans-serif" class=3D"font"><br> </span><span style=3D"font-family:&qu=
+ot;Segoe UI Emoji&quot;, sans-serif" class=3D"font"><span style=3D"font-fam=
+ily:&quot;times new roman&quot;, times, serif, sans-serif" class=3D"font">=
+=F0=9F=8C=90</span></span><span style=3D"font-family:&quot;times new roman&=
+quot;, times, serif, sans-serif" class=3D"font">&nbsp;</span></b><a title=
+=3D"http://www.ericrobotics.com/" href=3D"https://insights.zohorecruit.in/c=
+k1/2518b.df847630b/f9e4dc40-c6bd-11f1-8159-cabf48e1bf81/9e989d1ae9895286225=
+aca311b1b5be4b624cc09/1?e=3DeF%2BGVOSMRUI3JfNzAQjdrAKlYP63Bo37bBMmEi0xKgk%3=
+D" target=3D"_blank"><b><span style=3D"font-family:&quot;times new roman&qu=
+ot;, times, serif, sans-serif" class=3D"font">www.ericrobotics.com</span></=
+b></a><b><span style=3D"font-family:&quot;times new roman&quot;, times, ser=
+if, sans-serif" class=3D"font"><br> 17/8, D1 Block, MIDC<br> Chinchwad, Pun=
+e - 411019, Maharashtra</span></b></p><table style=3D"background:white; bor=
+der-collapse:collapse" cellpadding=3D"0" cellspacing=3D"0" border=3D"0" cla=
+ss=3D"MsoNormalTable"><tbody><tr style=3D"height:107.1pt"><td style=3D"widt=
+h:343.75pt; padding:0.75pt 0.75pt 0.75pt 0.75pt; height:107.1pt" width=3D"4=
+58"><p style=3D"margin-top:0px"><img src=3D"https://recruit.zoho.in/recruit=
+/viewInLineImage?fileContent=3D365bb6a0cbe32f491e5580cc1e9777d213a8cec4a725=
+2d75f673c87cea7cac73eb9c7498b00fdf728c9152adf2c7dbb238dde9e13951965f48b5547=
+2ebff3528" style=3D""><br><br></p></td></tr></tbody></table><div><br></div>=
+</div></div><div><br></div><br><img src=3D"https://insights.zohorecruit.in/=
+ocimage/2518b.df847630b/mkf9e4dc40-c6bd-11f1-8159-cabf48e1bf81_hkc715ba5e52=
+0c131b9563fdcd1ac30d7846ab58830246e02cbef37361ce1bf9ec.gif" height=3D"1" wi=
+dth=3D"1" alt=3D""></body></html>
+------=_Part_8495944_874930734.1791865468698--

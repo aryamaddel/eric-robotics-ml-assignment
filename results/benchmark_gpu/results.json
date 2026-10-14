@@ -1,0 +1,260 @@
+{
+  "env": {
+    "platform": "Linux-4.19.0-gvisor-x86_64-with-glibc2.36",
+    "processor": "",
+    "torch": "2.14.1+cu130",
+    "ultralytics": "8.4.177",
+    "torch_threads": 8,
+    "device": "0",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "gpu": "NVIDIA L4"
+  },
+  "results": [
+    {
+      "format": "torch",
+      "imgsz": 640,
+      "size_mb": 5.5,
+      "median_ms": 14.35,
+      "inference_median_ms": 11.19,
+      "mean_ms": 14.46,
+      "p90_ms": 15.05,
+      "round_medians_ms": [
+        14.39,
+        14.13,
+        14.46
+      ],
+      "fps": 69.7,
+      "cone": {
+        "mAP50": 0.7729,
+        "mAP50-95": 0.4363
+      },
+      "barrier": {
+        "mAP50": 0.6842,
+        "mAP50-95": 0.4236
+      },
+      "stop_sign": {
+        "mAP50": 0.721,
+        "mAP50-95": 0.5018
+      },
+      "mean_mAP50": 0.726
+    },
+    {
+      "format": "torch-fp16",
+      "imgsz": 640,
+      "size_mb": 5.5,
+      "median_ms": 14.96,
+      "inference_median_ms": 11.56,
+      "mean_ms": 15.09,
+      "p90_ms": 15.81,
+      "round_medians_ms": [
+        14.94,
+        14.87,
+        15.13
+      ],
+      "fps": 66.8,
+      "cone": {
+        "mAP50": 0.7675,
+        "mAP50-95": 0.4329
+      },
+      "barrier": {
+        "mAP50": 0.6845,
+        "mAP50-95": 0.4232
+      },
+      "stop_sign": {
+        "mAP50": 0.7187,
+        "mAP50-95": 0.5016
+      },
+      "mean_mAP50": 0.7236
+    },
+    {
+      "format": "engine-fp16",
+      "imgsz": 640,
+      "size_mb": 62.41,
+      "median_ms": 4.0,
+      "inference_median_ms": 0.74,
+      "mean_ms": 3.9,
+      "p90_ms": 4.09,
+      "round_medians_ms": [
+        4.01,
+        4.03,
+        3.95
+      ],
+      "fps": 250.3,
+      "cone": {
+        "mAP50": 0.7726,
+        "mAP50-95": 0.4363
+      },
+      "barrier": {
+        "mAP50": 0.6804,
+        "mAP50-95": 0.421
+      },
+      "stop_sign": {
+        "mAP50": 0.7165,
+        "mAP50-95": 0.4922
+      },
+      "mean_mAP50": 0.7232
+    },
+    {
+      "format": "engine-int8",
+      "imgsz": 640,
+      "size_mb": 41.74,
+      "median_ms": 4.09,
+      "inference_median_ms": 0.73,
+      "mean_ms": 4.03,
+      "p90_ms": 4.33,
+      "round_medians_ms": [
+        4.05,
+        4.11,
+        4.12
+      ],
+      "fps": 244.4,
+      "cone": {
+        "mAP50": 0.7571,
+        "mAP50-95": 0.4172
+      },
+      "barrier": {
+        "mAP50": 0.6614,
+        "mAP50-95": 0.4056
+      },
+      "stop_sign": {
+        "mAP50": 0.6953,
+        "mAP50-95": 0.494
+      },
+      "mean_mAP50": 0.7046
+    },
+    {
+      "format": "torch",
+      "imgsz": 960,
+      "size_mb": 5.5,
+      "median_ms": 16.29,
+      "inference_median_ms": 11.74,
+      "mean_ms": 16.5,
+      "p90_ms": 17.68,
+      "round_medians_ms": [
+        16.66,
+        16.41,
+        16.04
+      ],
+      "fps": 61.4,
+      "cone": {
+        "mAP50": 0.8627,
+        "mAP50-95": 0.5214
+      },
+      "barrier": {
+        "mAP50": 0.7691,
+        "mAP50-95": 0.5011
+      },
+      "stop_sign": {
+        "mAP50": 0.8183,
+        "mAP50-95": 0.6214
+      },
+      "mean_mAP50": 0.8167
+    },
+    {
+      "format": "torch-fp16",
+      "imgsz": 960,
+      "size_mb": 5.5,
+      "median_ms": 16.82,
+      "inference_median_ms": 12.17,
+      "mean_ms": 18.28,
+      "p90_ms": 22.38,
+      "round_medians_ms": [
+        16.51,
+        17.52,
+        16.84
+      ],
+      "fps": 59.5,
+      "cone": {
+        "mAP50": 0.8611,
+        "mAP50-95": 0.5164
+      },
+      "barrier": {
+        "mAP50": 0.7697,
+        "mAP50-95": 0.4995
+      },
+      "stop_sign": {
+        "mAP50": 0.8161,
+        "mAP50-95": 0.6197
+      },
+      "mean_mAP50": 0.8156
+    },
+    {
+      "format": "engine-fp16",
+      "imgsz": 960,
+      "size_mb": 131.26,
+      "median_ms": 5.61,
+      "inference_median_ms": 1.09,
+      "mean_ms": 5.51,
+      "p90_ms": 5.67,
+      "round_medians_ms": [
+        5.61,
+        5.62,
+        5.61
+      ],
+      "fps": 178.2,
+      "cone": {
+        "mAP50": 0.864,
+        "mAP50-95": 0.5196
+      },
+      "barrier": {
+        "mAP50": 0.7682,
+        "mAP50-95": 0.499
+      },
+      "stop_sign": {
+        "mAP50": 0.8024,
+        "mAP50-95": 0.6205
+      },
+      "mean_mAP50": 0.8115
+    },
+    {
+      "format": "engine-int8",
+      "imgsz": 960,
+      "size_mb": 88.16,
+      "median_ms": 5.62,
+      "inference_median_ms": 1.04,
+      "mean_ms": 5.56,
+      "p90_ms": 5.82,
+      "round_medians_ms": [
+        5.62,
+        5.61,
+        5.63
+      ],
+      "fps": 177.8,
+      "cone": {
+        "mAP50": 0.852,
+        "mAP50-95": 0.5056
+      },
+      "barrier": {
+        "mAP50": 0.7541,
+        "mAP50-95": 0.4831
+      },
+      "stop_sign": {
+        "mAP50": 0.7949,
+        "mAP50-95": 0.5908
+      },
+      "mean_mAP50": 0.8003
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "env": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 191 Stepping 2, GenuineIntel",
+    "torch": "2.14.1+cpu",
+    "ultralytics": "8.4.177",
+    "torch_threads": 8,
+    "device": "cpu",
+    "cpu_affinity": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "openvino": "2026.4.1-22982-e213a147257-releases/2026/4"
+  },
+  "results": [
+    {
+      "format": "torch",
+      "imgsz": 512,
+      "size_mb": 3.53,
+      "median_ms": 43.6,
+      "inference_median_ms": 40.63,
+      "mean_ms": 45.03,
+      "p90_ms": 50.1,
+      "round_medians_ms": [
+        44.2,
+        43.19,
+        43.4
+      ],
+      "fps": 22.9
+    },
+    {
+      "format": "openvino",
+      "imgsz": 512,
+      "size_mb": 6.01,
+      "median_ms": 26.1,
+      "inference_median_ms": 22.57,
+      "mean_ms": 27.36,
+      "p90_ms": 31.49,
+      "round_medians_ms": [
+        26.14,
+        25.91,
+        26.57
+      ],
+      "fps": 38.3
+    },
+    {
+      "format": "openvino-int8",
+      "imgsz": 512,
+      "size_mb": 2.34,
+      "median_ms": 20.02,
+      "inference_median_ms": 16.56,
+      "mean_ms": 20.99,
+      "p90_ms": 23.33,
+      "round_medians_ms": [
+        20.27,
+        19.79,
+        20.04
+      ],
+      "fps": 49.9
+    },
+    {
+      "format": "torch",
+      "imgsz": 640,
+      "size_mb": 3.53,
+      "median_ms": 54.95,
+      "inference_median_ms": 51.21,
+      "mean_ms": 56.34,
+      "p90_ms": 61.47,
+      "round_medians_ms": [
+        55.63,
+        54.67,
+        54.96
+      ],
+      "fps": 18.2
+    },
+    {
+      "format": "openvino",
+      "imgsz": 640,
+      "size_mb": 6.05,
+      "median_ms": 39.73,
+      "inference_median_ms": 34.79,
+      "mean_ms": 41.25,
+      "p90_ms": 46.87,
+      "round_medians_ms": [
+        39.53,
+        39.47,
+        40.4
+      ],
+      "fps": 25.2
+    },
+    {
+      "format": "openvino-int8",
+      "imgsz": 640,
+      "size_mb": 2.37,
+      "median_ms": 29.94,
+      "inference_median_ms": 25.09,
+      "mean_ms": 31.09,
+      "p90_ms": 34.96,
+      "round_medians_ms": [
+        29.98,
+        29.76,
+        30.13
+      ],
+      "fps": 33.4
+    }
+  ]
+}

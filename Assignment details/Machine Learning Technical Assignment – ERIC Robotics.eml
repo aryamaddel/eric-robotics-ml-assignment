@@ -1,0 +1,261 @@
+Delivered-To: aryamaddel@gmail.com
+Received: by 2002:a05:7110:3035:b0:367:ea3b:acc2 with SMTP id u21csp274590gea;
+        Tue, 13 Oct 2026 02:44:44 -0700 (PDT)
+X-Received: by 2002:a05:6a20:2451:b0:3dd:a196:69ec with SMTP id adf61e73a8af0-3e16bf36b7amr11055662637.71.1791884684449;
+        Tue, 13 Oct 2026 02:44:44 -0700 (PDT)
+ARC-Seal: i=2; a=rsa-sha256; t=1791884684; cv=pass;
+        d=google.com; s=arc-20260327;
+        b=HjecucO/Aj3uxIoBHOcaMxSgqy17Uv4kOVgrXwOmKfmFodvn8HWt7N9fWk35hy5fyd
+         nCebmFWVAITaL0y0Lm4IX7CSlX1QT4y79hS3KMry9MQv803GyxjEzcGbs2zHty96pCxL
+         le8cz40wnk0vyOO6P+0ocQi06wJr/59CAwaeMft9X7plEhvNEBwITnW7HcB3WW9R63AX
+         3LcMZAQPywi1sLC/GzrRbzWWsG5ch/mGr4nEbQUmX3nysFkmT3B2KooQyuYyhbe+fna5
+         nNY/LEsPabpnQjTfnu+K+weNWaC7/Ot7ROttCx49sEmS2GRZ1EhWyD3DRzxg1jiRV+7p
+         oJbA==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=feedback-id:tm-mail-jid:original-envelope-id:mime-version:subject
+         :message-id:to:from:date:dkim-signature;
+        bh=TEBU1NAc2uKeVFdaWVxXLnDUUwfoHHqP/TysE643jhA=;
+        fh=7jUucBWdzXlxBH46nSbZWpIo/o+08w6Pieb5e+zmyR8=;
+        b=CClkes+aMvht4jBFxVJuvXIauIby4st5hmEekc0nwKFAnkS65WuqYq1UrtpUfPebod
+         xm5NtVl9PxjWUByEdgu1b4McNnK+FI8BWZbFG3/ugsm0hPACgfUvBIkCrcTZ6lHzELQo
+         m0mmjZI4WbLKL4g8bMWNu5KvyP0BesYWiDiu3t591vqPlEsXagmdjzCVVwtcnxFl4wxa
+         SuK1W5QdqFwA/ZelQKvm/sIjsnXW28nukon/BG6ayDfMNk1NuAqtZDPHkzw8GOggIQ5f
+         jy4X5O7iJAcbhz633CzDFLhqvJARflzhEdtQ4kDp9NeMet9GjAoGd9J9QKCMkSAW2Xb/
+         Du1w==;
+        dara=google.com
+ARC-Authentication-Results: i=2; mx.google.com;
+       dkim=pass header.i=@ericrobotics.com header.s=1763708990144 header.b=aQadT5jl;
+       arc=pass (i=1 spf=pass spfdomain=sender.zohorecruit.in dkim=pass dkdomain=ericrobotics.com dmarc=pass fromdomain=ericrobotics.com>);
+       spf=pass (google.com: domain of bounces+b6215240-c6ea-11f1-8fb4-62df313bf14d_vt1@sender.zohorecruit.in designates 103.117.159.125 as permitted sender) smtp.mailfrom=bounces+b6215240-c6ea-11f1-8fb4-62df313bf14d_vt1@sender.zohorecruit.in
+Return-Path: <bounces+b6215240-c6ea-11f1-8fb4-62df313bf14d_vt1@sender.zohorecruit.in>
+Received: from sender-g1-125.zohomail360.in (sender-g1-125.zohomail360.in. [103.117.159.125])
+        by mx.google.com with ESMTPS id d2e1a72fcca58-896b6add5c9si23082362b3a.27.2026.10.13.02.44.43
+        for <aryamaddel@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 13 Oct 2026 02:44:44 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounces+b6215240-c6ea-11f1-8fb4-62df313bf14d_vt1@sender.zohorecruit.in designates 103.117.159.125 as permitted sender) client-ip=103.117.159.125;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@ericrobotics.com header.s=1763708990144 header.b=aQadT5jl;
+       arc=pass (i=1 spf=pass spfdomain=sender.zohorecruit.in dkim=pass dkdomain=ericrobotics.com dmarc=pass fromdomain=ericrobotics.com>);
+       spf=pass (google.com: domain of bounces+b6215240-c6ea-11f1-8fb4-62df313bf14d_vt1@sender.zohorecruit.in designates 103.117.159.125 as permitted sender) smtp.mailfrom=bounces+b6215240-c6ea-11f1-8fb4-62df313bf14d_vt1@sender.zohorecruit.in
+ARC-Seal: i=1; a=rsa-sha256; t=1791884682; cv=none; 
+	d=zohomail360.in; s=zohoarc; 
+	b=L8oHhUyBKU4B68etFPx0i/lR5sPgH3Dt0dFEK3aSE8z4WYEIi5TfXlBJHadKJo8XHQjTDAqTUStO/2PKrOYnKkkWVlsGVIaT+643upCYy0tESbx9Ny/ooxTqjRvT9MufXri8gupFvgj0ySlRt7kgg1wGnZcGbR57g0UvnP4HqYI=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail360.in; s=zohoarc; 
+	t=1791884682; h=Content-Type:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To:Cc; 
+	bh=TEBU1NAc2uKeVFdaWVxXLnDUUwfoHHqP/TysE643jhA=; 
+	b=ViG8PXtvh7n5sjDlCPQukcyVy2trO8SYn0iWDg+ztLuW158630lkQ4gEZa0gJvoMxjBMigV7qq3rHaQFjqF5Cleh6ADwVcgHIfafS6FRhZFRUhB4SV9ZGto6PqAk5SWcejC0TeMKe/4WZgJsChqiAQV7d7qXnQXl9KGUw8fC3fY=
+ARC-Authentication-Results: i=1; mx.zohomail360.in;
+	dkim=pass  header.i=ericrobotics.com;
+	spf=pass  smtp.mailfrom=bounces+b6215240-c6ea-11f1-8fb4-62df313bf14d_vt1@sender.zohorecruit.in;
+	dmarc=pass header.from=<info@ericrobotics.com>
+Received: by mx.zoho.in with SMTPS id 1791884681127362.3712784044966;
+	Tue, 13 Oct 2026 15:14:41 +0530 (IST)
+DKIM-Signature: a=rsa-sha256; b=aQadT5jlsFZajqROLHOXQbYm/isWlDx0fBMEghM3qjTSni50/vhRJ26kd9LDby4gvbmCneXvOgmE+cdAFRcRB4dCONOmmEWTsHIebfni49fvUF+oWU7RED7MUel05dt77Iv/O0wi3hooK0Itu/3hu/SOeMkCZ75M0DK6VcpTDoI=; c=relaxed/relaxed; s=1763708990144; d=ericrobotics.com; v=1; bh=TEBU1NAc2uKeVFdaWVxXLnDUUwfoHHqP/TysE643jhA=; h=date:from:to:message-id:subject:mime-version:content-type:date:from:to:message-id:subject;
+Date: Tue, 13 Oct 2026 15:14:41 +0530 (IST)
+From: ERIC Robotics ERIC Robotics <info@ericrobotics.com>
+To:  <aryamaddel@gmail.com>
+Message-ID: <2518b.df847630b.m1.b6215240-c6ea-11f1-8fb4-62df313bf14d.1a134a65d64@sender.zohorecruit.in>
+Subject: =?UTF-8?Q?Machine_Learning_Technical_Assignment_=E2=80=93_ERIC_Robotics?=
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_9574149_1313263536.1791884681065"
+X-Transmail: transmail
+Original-Envelope-Id: 2518b.df847630b.m1.b6215240-c6ea-11f1-8fb4-62df313bf14d.1a134a65d64
+X-JID: 2518b.df847630b.m1.b6215240-c6ea-11f1-8fb4-62df313bf14d.1a134a65d64
+TM-MAIL-JID: 2518b.df847630b.m1.b6215240-c6ea-11f1-8fb4-62df313bf14d.1a134a65d64
+X-App-Message-ID: 2518b.df847630b.m1.b6215240-c6ea-11f1-8fb4-62df313bf14d.1a134a65d64
+X-Report-Abuse: <abuse+2518b.df847630b.m1.b6215240-c6ea-11f1-8fb4-62df313bf14d.1a134a65d64@zohocpaas.in>
+X-Zoho-Virus-Status: 1
+X-Zoho-AV-Stamp: zmail-av-0.2.12.1.5.3/291.809.33
+Feedback-ID: zu08011229be53bfcc82b42f063a8b32bf0000a94db74bafd9c2db2fcb8930cb49efdb171df034202d7287cddc72:ZohoMail
+X-Zoho-CM-AccountID: e06bce0e1afa5eba694da28f688bb1d6f847e44a429a40dc93cd9afd1b3a1699
+X-MailClient: External
+
+------=_Part_9574149_1313263536.1791884681065
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_9574150_679151970.1791884681065"
+
+------=_Part_9574150_679151970.1791884681065
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Dear ,Thank you for your interest in the Machine Learning position at ERIC =
+Robotics.Please find the README file attached, which contains the technical=
+ assignment details and instructions. Kindly complete the assignment within=
+ 2 days of receiving this email.Once completed, upload your work to a repos=
+itory on your personal GitHub account and reply to this email with your ful=
+l name, GitHub username, and the link to your assignment repository.Please =
+include your full name in the repository=E2=80=99s README.md file and add a=
+ contact section with your name, phone number, and email address.When reply=
+ing, kindly keep parmeet.software@ericrobotics.com, shubham.petkar@ericrobo=
+tics.com, abhishek.singh@ericrobotics.com, and muskan.sohaney@ericrobotics.=
+com in CC.Regards, ERIC ROBOTICS - Talent Team=E2=9C=89=EF=B8=8F hr@ericrob=
+otics.com=F0=9F=8C=90 www.ericrobotics.com17/8, D1 Block, MIDCChinchwad, Pu=
+ne - 411019, Maharashtra
+
+------=_Part_9574150_679151970.1791884681065
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><head><meta http-equiv=3D"Content-Type" content=3D"text/html;charset=
+=3DUTF-8"></head><body><div style=3D"font-family:verdana; font-size:13.3333=
+px; line-height:normal" id=3D"defaultFS"><div><p class=3D"isSelectedEnd"><s=
+pan>Dear ,</span><br></p><p class=3D"isSelectedEnd"><span>Thank you for you=
+r interest in the Machine Learning position at ERIC Robotics.</span><br></p=
+><p class=3D"isSelectedEnd"><span>Please find the </span><b><span>README fi=
+le attached</span></b><span>, which contains the technical assignment detai=
+ls and instructions. Kindly complete the assignment within </span><b><span>=
+2 days of receiving this email</span></b><span>.</span><br></p><p class=3D"=
+isSelectedEnd"><span>Once completed, upload your work to a repository on yo=
+ur </span><b><span>personal GitHub account</span></b><span> and reply to th=
+is email with your full name, GitHub username, and the link to your assignm=
+ent repository.</span><br></p><p class=3D"isSelectedEnd"><span>Please inclu=
+de your full name in the repository=E2=80=99s README.md file and add a cont=
+act section with your name, phone number, and email address.</span><br></p>=
+<p><span>When replying, kindly keep </span><a href=3D"mailto:parmeet.softwa=
+re@ericrobotics.com" target=3D"_blank"><span>parmeet.software@ericrobotics.=
+com</span></a><span>, </span><a href=3D"mailto:shubham.petkar@ericrobotics.=
+com" target=3D"_blank"><span>shubham.petkar@ericrobotics.com</span></a><spa=
+n>, </span><a href=3D"mailto:abhishek.singh@ericrobotics.com" target=3D"_bl=
+ank"><span>abhishek.singh@ericrobotics.com</span></a><span>, and </span><a =
+href=3D"mailto:muskan.sohaney@ericrobotics.com" target=3D"_blank"><span>mus=
+kan.sohaney@ericrobotics.com</span></a><span> in CC.</span><br></p><p style=
+=3D"margin-top:0px"><br></p><div><b>Regards,</b> <br></div><div><b>ERIC ROB=
+OTICS - Talent Team<br></b><span style=3D"font-family:&quot;Segoe UI Emoji&=
+quot;, sans-serif" class=3D"font">=E2=9C=89=EF=B8=8F</span>&nbsp;<a target=
+=3D"_blank" href=3D"mailto:hr@ericrobotics.com">hr@ericrobotics.com</a></di=
+v><div><span style=3D"font-family:&quot;Segoe UI Emoji&quot;, sans-serif" c=
+lass=3D"font">=F0=9F=8C=90</span>&nbsp;<a target=3D"_blank" href=3D"https:/=
+/secure-web.cisco.com/1OKodgTRR8NJEmKgpA9tUUvTxRwgZAYa6zCDv9RixB4pw6kVjppTb=
+kbepSzu0_CX_u194Fyui4XUkw9xft1UxR5hsZnvL2zceExzjSbqtwQMEVtKDYbINvWYuQRL_XCw=
+ty7elF8VLKVGsmO4P5rI0775ogfzbV9NloreR47wp-uy5Tatz7j04VzCDzGIybbLjECZEV7xrA2=
+O3RZsBuEJb-U6oG93bX9XWp4K4Df93nvatm9MrGaDp8XcBccTj10Tu3dNUWxthK2XqWBq8xTkiI=
+w/https%3A%2F%2Finsights.zohorecruit.in%2Fck1%2F2518b.df847630b%2F5e337810-=
+dfc8-11f0-82b1-cabf48e1bf81%2F9151e4e49b945e64f322f3b943c7619ddc0260e3%2F2%=
+3Fl%3Dsecure-web.cisco.com%252F1EW3HcLpaXB4RyHxJdQFTgVrGj55eg6QwFZ63aEyWg3o=
+QHUe4KGcQvMUVMg6HkcA6Gab7_bqaAZEMzrmTf2yUxpXri7WWuHJnuWSp7yJaKAqAqxEQCMU7w1=
+fhVKfEjavDp_dOpEK00iQayJhr238y58DS9gRzcYQyvpNQjtk7g23vVBUsLqVcGcJtI9fOgLfRm=
+bu0nfsE66H6njTEJD-iJwNG__7P8SanMBlOVJcXpk4PLMmJu_djvJbeacl-VjM1wKY0bl5gqlOx=
+eold_qOomg%252Fhttps%25253A%25252F%25252Finsights.zohorecruit.in%25252Fck1%=
+25252F2518b.df847630b%25252Ff9bfd530-df28-11f0-92cf-62df313bf14d%25252Fc9c4=
+4f1faf675fc5f459eb4342a30ae9f19d3469%25252F2%25253Fl%25253Dsecure-web.cisco=
+.com%2525252F12N0LmV5f5QDv-R3h2Lhz0wM9N-UG8w2mi5YqxPfzo0URFRJEgfbsZmqzXrxMo=
+x3-UBCL8GT7m1QNPefq4vMZPJ9TY4HFe1-WTei_hLAmGPjQVfCcW0Z9LeI8cBBjVWWuCq3a-kIN=
+s0ZXcTV91qC2H010gOfNJhiWPhrn9m4X6fHOQ6cM46lEbv3YuCSaR8bjuJAC1_P-h8xW3337cAS=
+Ood1wa27RRT2BiUWbxgij1b33EMbgXEWtwfYzMK7dMB3TsDE-7WkrjvQcjwk2kJ96kg%2525252=
+Fhttps%252525253A%252525252F%252525252Finsights.zohorecruit.in%252525252Fck=
+1%252525252F2518b.df847630b%252525252Fc3c0dec0-defb-11f0-8896-525400c92439%=
+252525252F0dca4ab4b8706033b00447ecc004b86789e55335%252525252F2%252525253Fe%=
+252525253D6pUpdbRsbG9x5dS4JeiTd3JkYKJ7qRKc0kMyWZmGR%25252525252FZsflDjGf42u=
+h0ATrdC1sm2o0W66Sgp5c8h%25252525252BpcGj4FY3kF%25252525252Br7Od1s4nlw0ozIpb=
+CBW4dVyLd2I20de05D7T%25252525252FzxftJDElDsmpiZr5pjJ8gmOzdOMqcpxzhvkocamYXD=
+eTQLLWxLxl0ft0ifzbi0qhJlNivKi4iGETNO%25252525252BMDgxdt8JML1B%25252525252B3=
+iejdjujhf%25252525252FIaAZbaxGeAeVHZSXuebwUOJQMHO35demgqhoqlWPDcs5XZ4VFzh%2=
+5252525252Bb9VWm73ylLdRxobpGwZ60RkQ%25252525252FBhCPSVW1V%25252525252FHfgGu=
+JLR4NJdV2c5CXu8gI8K6Ryw682aBMu162UVXVbDbfNxTT6%25252525252BTuzc7IWuGDbm4I4H=
+NEzbmlSyMviVLRAzLKXVvjf6plvbsbPJ2eHR7nuZta86wm3bfsG3HYdoEf3Y4HOhq%252525252=
+52B0i95oDM18WhDfM50U%25252525252FFBkc%25252525252BuWmL25iZIrNuk8hj9fEI8e6h1=
+JGnTnERPh%25252525252FZPcvmpTMpiIKz9zLSH40ac05xgypH012wIqum6Gi6GWEwL3Gk5O5r=
+oS6cLrFw%25252525252BnFVnymMZouUzwAWQGoc2aX5gpn2aezwzmAgNZKNY5yZOjyrNlnlGvL=
+4M9W2Sesm3lgRygm7FBYu0kj%25252525252FguRILmlAV0BDR1b%25252525252Bm8XsFNwflW=
+kHMOYgVsFKvqGlP2RXgKDfhLIN%25252525252FSl4pw2jDo0yfrFSPsh1eOpZErJJNJaPXBWx0=
+EXf9oTh6ha6RgCXgn5PGDIF9Ma1SyTNiVvH3hp9M42DBtTh9oGLtNguOUQGwXodAuq%25252525=
+252BYabFDNQYvrqWLVkT3ZD51P1oDIuwVQAKmh3Mdn0XzbQfKZLL4siOlfwA931ohAEh0BYCaHM=
+0v%25252525252FsVte0RI%25252525252BsxRfly1AMsNLfhpyc4GeIQkzkYbniJ2DZimppCRK=
+YDZQjFWlgzFxci9YI1LKdaMjHD0sWHbSuF3RDFlk4wz9f2iBS1cfC6md5SmlPmFF49zVBpfUHbe=
+r4kILPlRWQnxhu3NT2RvtJhZSpwrx2Rb5bPQrFlhpxV5%25252525252FZ6TDsO4Sd0x807S9YC=
+bqBM9D1PtShhr60ZEk1SKakO8JO05iIi%25252525252F0j1kgchN79IQkSl%25252525252FCY=
+nD7IPqsix1ENZsuACyfW29JAh8XUu%25252525252BfCYLvFiyg3ciQU%25252525252FfP%252=
+52525252FlS7pGERKpZIZrQcVNhpmDK%25252525252FkwJBGyE07PSK%25252525252FYg%252=
+52525252FcOYPek10rOowZ%25252525252Fn6EPs3WxRIfePvWNMySm1SmwGiukXsW3Osy91RGh=
+FVsSwjVlG74IM4WtOO5rACK6T%25252525252BlVXzYjWc1zQjLG1XrI8ZxurJ4ax0VCHFDPSIi=
+VzOV4XHd%25252525252BI7nkg%25252525252BBzqRol2XZaMnkaGzk2aXJv5%25252525252B=
+ySi%25252525252Fq9gGpmou6vVyRg0siloNM1YT%25252525252FMcYJqLwhofm4Cys2gpGUsl=
+MdIiqJHgZIePwChk9B9h2gAEgCiJ5l6vnhawTBDLFBzmU6tnKrfieZWdIP2sXJkt45M2jhtcdvg=
+iJkzSbnZP5jXbr7oHBjuYDURMvAJyuMKOdoqqpA3Zv9p%25252525252BrBqis5lVcFEHtuSPtu=
+foayqYEAXvLaS3TV1J8DyTluUUcTTOvuSMhKrMKVvDHVlSlXDUdzDmh2M6Fornu9pmpTZdEiqgh=
+wcW4sf2jz4faujdtiFwp%25252525252BCFBSrHKHqdWSGn6sF3vEdfl8vQtLg3Bc3Sn%252525=
+25252BZBOXxeblOVAEWt5PJ7FqL35RAtQhUFrbalHC5%25252525252FmGTrjJSew2zyIAkVCsv=
+H1lSjxXXxLSHc%25252525252FoqzIRr0G8Ffp2VHmar3aZCfDByDAAGXO41N%25252525252Bp=
+wLaEAZRcVRBUX2N7LWVvm05qrCsHyHAKYE6RKVt2emPDMYNRnRjQ%25252525252FYm5pTRMkka=
+H9iIMSKk01OBwXvNke%25252525252FP6GFfaeyrbd4dMLuy7eUuXokPr8v0FpdvaIVcMQi2Z6a=
+bu5F6lgTpOSMcjJV88bL2FrLKZ7ehxBtkr8xt4JoU5SRONoaU5SBCgvz2OisHZBQlmrGB6AHkCK=
+1xl0TE5dayCv%25252525252BK2Uaz%25252525252FlmPxTs9u4Zk98rfJL3LVHP45y0U7Lsks=
+cp8PmnZh8IH7Y3If2Lq8QZmAO31QdyBYu%25252525252BLnhp%25252525252BXBvgi2AE7xDb=
+3hi7o5Snsm8ci%25252525252BAbXwRsMG1vikmgxYup4BWJSgfwwsIp1qgawXapxmylCzneI%2=
+5252525252BWzpZ0ByStvq0kY7Odm3mVsJHkeGPhs8d%25252525252BK4MFtl8qL1zV%252525=
+25252Bo3XlRcx39FnfdIF%25252525252B72OZVsulnewOG%25252525252FnyUclG4u5tgggKt=
+MVSZ8y%25252525252BG19sVTSpyrNK3pW9efDRZuiLMLY7gO1npZ%25252525252BBhQvKkzb1=
+j5A%25252525252FCaz9bwiKY0engfSuMPlW3WKx5g1hT30j0a%25252525252FzVcgCGHcmSs4=
+U9Rc6qUOM%25252525252B9C%25252525252FX2zP4GycVbMR3zyEPtaX2g1ME6FQY6d3WXBqVK=
+wwuqbe1eHAat0jNRIm67Nv%25252525252FeZn%25252525252BTWrIx5FHJezn3W1T%2525252=
+5252F8qqjD7v3D5xcE2y4VE2AQOflR8zkG0rkXphBan7ycngbJyhGVNbh%25252525252BHJ6tK=
+ROk8aRyBxXWMc%25252525252BaUn6FL6r4i72xzcky%25252525252Fq3XfHVFaaxfcYPLcvWb=
+NBeAEeKIOwDncWIu1armE%25252525252FTqSI321TjtzHd8ElxJqWdf26VWkRQPEnNuf1gVeaK=
+kIf6ArQd8N9XvHSNErpBzgtfPkusWPF3XJ4t7Zg88ZcSvrLLlN%25252525252BYZUgqXAzMtBa=
+Mu%25252525252BY8AlDhqgj0JpLd6wqK0nDoDrChYvzfrmw8F7llYCgBl0rVjTVvWawuMGo5Px=
+9EZrdmk%25252525252FV%25252525252BU14xsivnW7S5A5b1WwI5XO7T%25252525252FtbSs=
+a%25252525252BAlriV9uQddJQk%25252525252BX7VnJO3Eb0dfvhgTkY1Wu1j2A41LkFAvOZT=
+nq5ZTldQQv5qc5lh8BjVUD4NNImO7cs2uO5jCJxLTeoQuMLeqEjqIrS%25252525252Fdpj2YJC=
+4IELhPdlMEozHjpRQTn6vJoFDhsyiZPgfk0WzC%25252525252BVSPtv1AixROE0dTCYMVQYPmR=
+HtFvhYiKYKgMaZ7oQXnYiX1lMpTuJ4IWcS0jxH%25252525252F2xJiweYRs61xp42F2OiIIhT5=
+%25252525252FaBbz%25252525252Flz83su8pgH4J1eaWB7mLzNXBnJq9iqBgtXKtyVciSFIBX=
+S94b2p3PCtu5xH%25252525252FyYK73xdL7UeYDUBS%25252525252BOy2bZK7AFBYj6pSsvUF=
+N4DfFupm3WtwwVLWNAlcCjII35bOOY1C22U442gp6Eoyrca3p7bUw6MtzS231KP%25252525252=
+BK391qp6q8Vbf5fKj2IkuXRSDavgousAp7MSzpEmrEFe%25252525252FDb2Jpld31ydTjU4UWp=
+E3GcAhQNFIAaH1GsnDt%25252525252FYcwaMQaCZPu9atrCuNEkC8Rf1lUyK5nYSbmwMks4152=
+G9aU1WjxYemUewy8TpfT%25252525252Bj0%25252525252FOmo3Hi6xCOmhUn4mvQ2XPYZXQNH=
+gH6JHEtoScnb2xXQYInJrYSxrHMp3hMbAn2EDlL0OlFxIdSUf5R8FgLmiUIS3mtlfxI%2525252=
+5252BPuyqZDO3UeqS5yfkC5GAn9lNzO0HHFvRvOyGHKzZbX4DYCnJ45kLJ3Xz%25252525252F1=
+qRlp8izFXJ8WQj4lzdZONZP6Xw54SJO3pi0I9fjmm1Vgt0pa549fAmmUKaOpu2ZDcPPiQbnO%25=
+252525252F6D6ZRqtVzmwmQ0qRmanaoCZQSj%25252525252BLeMmpPpWdxGS6uegAn0trtkvfP=
+j1pUq724tZYIr1EHamlB5GOg8IcrP%25252525252BYLy4N27KCGagbXVfz5lELSrhga6og%252=
+52525253D%25252525253D">www.ericrobotics.com</a><br></div><div>17/8, D1 Blo=
+ck, MIDC<br></div><div>Chinchwad, Pune - 411019, Maharashtra<br></div><p><b=
+r></p><p style=3D"margin-top:0px"><span style=3D""></span><br></p><div><br>=
+</div></div></div><br><br><img src=3D"https://insights.zohorecruit.in/ocima=
+ge/2518b.df847630b/mkb6215240-c6ea-11f1-8fb4-62df313bf14d_hkf0366286ad3dd26=
+d209d022fdc785cf02cbed8cc4227b89d304721d966e6528c.gif" height=3D"1" width=
+=3D"1" alt=3D""></body></html>
+------=_Part_9574150_679151970.1791884681065--
+
+------=_Part_9574149_1313263536.1791884681065
+Content-Type: text/plain; charset=UTF-8; name=README.cd
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=README.cd
+
+T2JqZWN0IERldGVjdGlvbiArIERpc3RhbmNlIEVzdGltYXRpb24gZm9yIFJvYm90aWNzIE5hdmln
+YXRpb24KWW91ciBnb2FsIGlzIHRvIGRldGVjdCBuYXZpZ2F0aW9uLXJlbGV2YW50IG9iamVjdHMg
+YW5kIGVzdGltYXRlIGhvdyBmYXIgdGhleSBhcmUgZnJvbSB0aGUgcm9ib3QgKGZyb20gY2FtZXJh
+IHBlcnNwZWN0aXZlKS4gT24gdG9wIG9mIHRoYXQsIHlvdeKAmWxsIGxvb2sgaW50byB3YXlzIG9m
+IG1ha2luZyB5b3VyIG1vZGVsIHJ1biBlZmZpY2llbnRseSBvbiBlZGdlIGRldmljZXMuCgpPYmpl
+Y3RpdmUKRGV0ZWN0IGNvbmVzLCBiYXJyaWVycywgc3RvcCBzaWducy4KRXN0aW1hdGUgdGhlaXIg
+ZGlzdGFuY2UgZnJvbSB0aGUgcm9ib3QgKGNhbWVyYSBwZXJzcGVjdGl2ZSkgYW5kIGFubm90YXRl
+IHJlc3VsdHMgYWNjb3JkaW5nbHkuCkV4cGxvcmUgb3B0aW1pemF0aW9uIHRlY2huaXF1ZXMgZm9y
+IHJ1bm5pbmcgeW91ciBtb2RlbCBvbiBsaW1pdGVkIGhhcmR3YXJlLgpXaGF0IHRvIERvCjEuIE9i
+amVjdCBEZXRlY3Rpb24KV29yayB3aXRoIHRoZSBCREQxMDBLIGRhdGFzZXQuIChPcHRpb25hbCwg
+ZmVlbCBmcmVlIHRvIGxvb2sgaW50byBhbnkgb3RoZXIgcmVsZXZhbnQgZGF0YXNldHMuKQpVc2Ug
+dHJhbnNmZXIgbGVhcm5pbmcg4oCTIHBpY2sgYSBzdWl0YWJsZSBwcmV0cmFpbmVkIG1vZGVsIGFu
+ZCBmaW5lLXR1bmUgaXQuCktlZXAgeW91ciBpbXBsZW1lbnRhdGlvbiBjbGVhbiBhbmQgbW9kdWxh
+ci4KMi4gRGlzdGFuY2UgRXN0aW1hdGlvbgpGb3IgZWFjaCBkZXRlY3RlZCBvYmplY3QsIGVzdGlt
+YXRlIGRpc3RhbmNlIHRvIHRoZSByb2JvdC4KQW5ub3RhdGUgYm91bmRpbmcgYm94ZXMgbGlrZSB0
+aGlzOgpDb25lLCAxLjVtClN0b3AgU2lnbiwgMy4ybQozLiBPcHRpbWl6YXRpb24gZm9yIEVkZ2Ug
+RGV2aWNlcwpUcnkgb3V0IHF1YW50aXphdGlvbiwgcHJ1bmluZywgb3Igc3dhcHBpbmcgdG8gbGln
+aHR3ZWlnaHQgYmFja2JvbmVzLgpSZWNvcmQgRlBTIG9uIENQVSBhbmQgR1BVIGZvciBjb21wYXJp
+c29uLgpPcHRpb25hbCAoRXh0cmEgQ3JlZGl0KQpOb3QgbWFuZGF0b3J5LCBidXQgZ29vZCB0byBl
+eHBsb3JlIGlmIHlvdeKAmXJlIGN1cmlvdXM6CgpFcGlwb2xhciBHZW9tZXRyeSDigJMgZGVyaXZl
+IGRpc3Bhcml0eeKAk2RlcHRoIHJlbGF0aW9uLgpIb21vZ3JhcGh5IC8gUGVyc3BlY3RpdmUgVHJh
+bnNmb3JtIOKAkyB3YXJwIHRoZSBzY2VuZSB0byBhIGJpcmTigJlzLWV5ZSB2aWV3LgpPcHRpY2Fs
+IEZsb3cg4oCTIHRyYWNrIG1vdmluZyBjb25lcyBhY3Jvc3MgZnJhbWVzLgpTdWJtaXNzaW9uIGFu
+ZCBkZWFkbGluZQpTdWJtaXQgeW91ciB3b3JrIGJ5IGNvbW1pdHRpbmcgeW91ciBjb2RlIHRvIHRo
+aXMgcmVwb3NpdG9yeSB3aXRoaW4gMiBkYXlzIG9mIGFjY2VwdGluZyB0aGUgYXNzaWdubWVudC4K
+U3VibWlzc2lvbnMgbWFkZSB0byBwZXJzb25hbCByZXBvc2l0b3JpZXMgd2lsbCBub3QgYmUgcmV2
+aWV3ZWQ7IGVuc3VyZSBhbGwgd29yayBpcyBwdXNoZWQgdG8gdGhlIGRlc2lnbmF0ZWQgcmVwb3Np
+dG9yeSBwcm92aWRlZCBmb3IgeW91Lgrwn5KhIE5vdGVzClRyYW5zZmVyIGxlYXJuaW5nIHdpbGwg
+c2F2ZSB5b3UgdGltZS4KRGlzdGFuY2UgZXN0aW1hdGlvbiBkb2VzbuKAmXQgbmVlZCB0byBiZSBw
+ZXJmZWN0LCBidXQgaXQgc2hvdWxkIGJlIGJhc2VkIG9uIGdlb21ldHJ5IChmb2NhbCBsZW5ndGgs
+IHBpeGVsIHNpemUsIGV0Yy4pLgpTaG93IOKAnGJlZm9yZSB2cy4gYWZ0ZXLigJ0gcmVzdWx0cyBp
+ZiB5b3UgdHJ5IHF1YW50aXphdGlvbiBvciBwcnVuaW5nLgpHb29kIGx1Y2ssIGFuZCBoYXZlIGZ1
+biBibGVuZGluZyBkZWVwIGxlYXJuaW5nIHdpdGggZ2VvbWV0cnkgZm9yIHJvYm90aWNzIQ==
+------=_Part_9574149_1313263536.1791884681065--

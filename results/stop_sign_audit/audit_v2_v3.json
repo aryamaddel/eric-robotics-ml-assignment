@@ -1,0 +1,9 @@
+{
+  "description": "Manual review of stop_sign detections on the 1,650 nuImages test frames (no human stop-sign labels there). Index = rank by confidence in the crop grids.",
+  "v2_conf0.4": {"detections": 13, "stop_sign": 12, "wrong": 1, "wrong_indices": [11], "note": "11 = do-not-enter"},
+  "v2_conf0.2": {"detections": 21, "stop_sign": 18, "wrong": 3, "wrong_indices": [11, 16, 17], "note": "11,16 = do-not-enter, 17 = logo"},
+  "v3_conf0.4": {"detections": 34, "stop_sign": 32, "wrong": 2, "wrong_indices": [28, 30], "note": "28 = logo, 30 = no-entry"},
+  "v3_conf0.2": {"detections": 48, "stop_sign": 36, "wrong": 11, "uncertain": 1,
+                 "wrong_indices": [28, 30, 34, 35, 36, 37, 39, 40, 42, 43, 45], "uncertain_indices": [46],
+                 "note": "35,37 = give-way, 36 = no-pedestrians, 28,43,45 = logos, 30,34,39,42 = no-entry, 40 = person"}
+}
