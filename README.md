@@ -9,56 +9,19 @@
 Detects **cones, barriers and stop signs**, labels each with its **distance from the camera** (`Cone, 6.4m`), and runs fast on limited hardware.
 
 ![Stop sign, No Entry sign and cones with distances](results/demo/stop_sign_nuimages_0.jpg)
-_Final model on a held-out nuImages frame: the stop sign is detected with its distance, and the **No Entry** sign next to it is correctly ignored. An earlier model version confused the two (§2)._
 
-| Requirement                          | What was built                                                                                                                             | Key result                                                                                                                            |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **1. Detection** (transfer learning) | COCO-pretrained **YOLO26n** fine-tuned on cones + barriers (nuImages) and stop signs (Mapillary)                                           | test **mAP50: cone 0.863, barrier 0.769, stop sign 0.817**                                                                            |
-| **2. Distance** (geometry)           | pinhole model $Z = f_y H / h$ with class height priors + ground-plane fallback; labels like `Cone, 6.4m`                                   | validated against **nuScenes 3D ground truth**: median error **cone 6.5%**, **barrier 9.6%** (end-to-end, detector boxes)             |
-| **3. Edge optimization**             | OpenVINO **INT8 quantization**, TensorRT, **structured pruning**, input resolution; desktop **and** emulated small-device CPUs           | **CPU 960 px: 18 → 41 FPS** (INT8, −0.010 mAP50); **GPU (L4) 960 px: 61 → 178 FPS** (TensorRT FP16); 4 slow cores at 512 px: **34 FPS** |
-| Extra                                | bird's-eye view (homography), optical-flow tracking with closing speed, stereo disparity → depth derivation; hand-crafted feature baseline | BEV distance agrees with the pinhole estimate within ~5% to 30 m; tracker runs the detector on 1 of 3 frames                          |
+_Final model on a held-out nuImages frame: the stop sign is detected with its distance, and the **No Entry** sign next to it is correctly ignored. An earlier model version confused the two (2)._
+
+| Requirement                          | What was built                                                                                                                             | Key result                                                                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Detection** (transfer learning) | COCO-pretrained **YOLO26n** fine-tuned on cones + barriers (nuImages) and stop signs (Mapillary)                                           | test **mAP50: cone 0.863, barrier 0.769, stop sign 0.817**                                                                              |
+| **2. Distance** (geometry)           | pinhole model $Z = f_y H / h$ with class height priors + ground-plane fallback; labels like `Cone, 6.4m`                                   | validated against **nuScenes 3D ground truth**: median error **cone 6.5%**, **barrier 9.6%** (end-to-end, detector boxes)               |
+| **3. Edge optimization**             | OpenVINO **INT8 quantization**, TensorRT, **structured pruning**, input resolution; desktop **and** emulated small-device CPUs             | **CPU 960 px: 18 → 41 FPS** (INT8, −0.010 mAP50); **GPU (L4) 960 px: 61 → 178 FPS** (TensorRT FP16); 4 slow cores at 512 px: **34 FPS** |
+| Extra                                | bird's-eye view (homography), optical-flow tracking with closing speed, stereo disparity → depth derivation; hand-crafted feature baseline | BEV distance agrees with the pinhole estimate within ~5% to 30 m; tracker runs the detector on 1 of 3 frames                            |
 
 One finding worth highlighting: the first model's stop-sign precision looked fine on its own test set (0.89), but on Singapore street scenes **more than half** of its stop-sign detections were _No Entry_ signs. The cause was noisy automatic labels. Reviewing those labels fixed it (47% → 94% correct) and also gave the best scores on every class (§2).
 
 Also: **INT8 costs only ~0.01 mAP50** for a 2–3× CPU speed-up, lowering the input size beats pruning for this nano model (§5.3), and hand-crafted colour/shape detectors were tested and fell far short (AP50 0.16 vs 0.81, §5.5).
-
-## Quick start
-
-```bash
-uv sync
-uv run python -m navperc.predict --weights weights/best.pt --camera configs/camera_generic_70deg.yaml --source <image|folder|video>
-```
-
----
-
-## 1. Pipeline
-
-```
-camera frame ──► YOLO26n (fine-tuned, 3 classes) ──► boxes ──► pinhole distance (K, class height prior)
-                                                          └──► ground-plane homography (BEV, 2nd estimate)
-                                                          └──► LK optical-flow tracker (IDs, closing speed)
-```
-
-| Module                                                           | File                                                              |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Classes (single source of truth)                                 | `src/navperc/classes.py`                                          |
-| Dataset builders (MTSD, nuImages → YOLO)                         | `src/navperc/datasets/`                                           |
-| Pseudo-labelling / masking / reviewed labels for missing classes | `src/navperc/pseudo_label.py`                                     |
-| Distance estimation                                              | `src/navperc/distance.py`                                         |
-| Distance evaluation vs nuScenes 3D GT                            | `src/navperc/eval_distance.py`                                    |
-| Inference + `Cone, 1.5m` annotation                              | `src/navperc/predict.py`                                          |
-| Export / speed / accuracy benchmark                              | `src/navperc/benchmark.py`                                        |
-| Bird's-eye view (extra)                                          | `src/navperc/bev.py`                                              |
-| Optical-flow tracking (extra)                                    | `src/navperc/track.py`                                            |
-| Hand-crafted colour/shape detectors + stop-sign verifier         | `src/navperc/handcrafted.py`, `scripts/eval_handcrafted.py`       |
-| Split-free blocks that make YOLO26 prunable                      | `src/navperc/prune_utils.py`                                      |
-| Cloud jobs: data fetch / training + GPU benchmark / pruning      | `cloud/fetch_app.py`, `cloud/modal_app.py`, `cloud/prune_app.py`  |
-| Remote-zip partial downloader, report table generator            | `scripts/fetch_remote_zip_members.py`, `scripts/report_tables.py` |
-| Camera intrinsics                                                | `configs/`                                                        |
-| Trained weights (final, pruned)                                  | `weights/best.pt`, `weights/best_pruned30.pt`                     |
-| Metrics JSON, figures, demo images/video                         | `results/`                                                        |
-
----
 
 ## 2. Data
 
@@ -199,15 +162,15 @@ All variants are exported from the same trained weights and **re-scored on the s
 
 ### 5.1 Accuracy of each export (test mAP50)
 
-| Input | Format                       | Size (MB) | Cone  | Barrier | Stop sign | Mean      |
-| ----- | ---------------------------- | --------- | ----- | ------- | --------- | --------- |
-| 960   | PyTorch FP32 (baseline)      | 5.5       | 0.863 | 0.769   | 0.818     | **0.817** |
-| 960   | OpenVINO FP32                | 10.1      | 0.865 | 0.770   | 0.805     | 0.814     |
-| 960   | **OpenVINO INT8**            | **3.5**   | 0.862 | 0.765   | 0.795     | **0.807** |
-| 640   | PyTorch FP32                 | 5.5       | 0.773 | 0.684   | 0.721     | 0.726     |
-| 640   | **OpenVINO INT8**            | 3.3       | 0.768 | 0.675   | 0.708     | 0.717     |
-| 512   | PyTorch FP32                 | 5.5       | 0.689 | 0.621   | 0.630     | 0.647     |
-| 512   | **OpenVINO INT8**            | 3.3       | 0.683 | 0.612   | 0.617     | 0.637     |
+| Input | Format                  | Size (MB) | Cone  | Barrier | Stop sign | Mean      |
+| ----- | ----------------------- | --------- | ----- | ------- | --------- | --------- |
+| 960   | PyTorch FP32 (baseline) | 5.5       | 0.863 | 0.769   | 0.818     | **0.817** |
+| 960   | OpenVINO FP32           | 10.1      | 0.865 | 0.770   | 0.805     | 0.814     |
+| 960   | **OpenVINO INT8**       | **3.5**   | 0.862 | 0.765   | 0.795     | **0.807** |
+| 640   | PyTorch FP32            | 5.5       | 0.773 | 0.684   | 0.721     | 0.726     |
+| 640   | **OpenVINO INT8**       | 3.3       | 0.768 | 0.675   | 0.708     | 0.717     |
+| 512   | PyTorch FP32            | 5.5       | 0.689 | 0.621   | 0.630     | 0.647     |
+| 512   | **OpenVINO INT8**       | 3.3       | 0.683 | 0.612   | 0.617     | 0.637     |
 
 **INT8 post-training quantization** (OpenVINO + NNCF, calibrated on 30% of the val split) costs only **~0.01 mAP50** at every resolution and makes the model 3× smaller than the FP32 IR. The PyTorch `.pt` file is FP16 storage, hence 5.5 MB. **Input resolution matters far more**: 960 → 640 costs 0.09 mAP50, 640 → 512 another 0.08, because the objects are small.
 
