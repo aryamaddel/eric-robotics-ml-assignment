@@ -1,4 +1,4 @@
-"""Render the REPORT.md result tables (Markdown) from the JSON files in results/.
+"""Render the README.md result tables (Markdown) from the JSON files in results/.
 
     python scripts/report_tables.py > tables.md
 """
@@ -72,8 +72,7 @@ def main():
     pruned_acc = acc_index("benchmark_cpu_pruned_accuracy")
     print("### accuracy per export\n" + accuracy_table(acc) + "\n")
     for name, title in (("benchmark_cpu_p6", "Desktop: 6 performance cores (i5-13400F)"),
-                        ("benchmark_cpu_e4", "Small-device proxy: 4 efficiency cores"),
-                        ("benchmark_cpu_p2", "Small-device proxy: 2 performance cores")):
+                        ("benchmark_cpu_e4", "Small-device proxy: 4 efficiency cores")):
         print(speed_table(name, acc, title) + "\n")
     print(speed_table("benchmark_cpu_pruned_p6", pruned_acc, "Pruned 30%, 6 performance cores") + "\n")
     print(speed_table("benchmark_cpu_pruned_e4", pruned_acc, "Pruned 30%, 4 efficiency cores") + "\n")
