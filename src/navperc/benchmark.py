@@ -7,9 +7,8 @@ For each (format, imgsz):
   3. accuracy: per-source test metrics (cones/barriers on nuImages, stop signs on MTSD),
   4. model file size.
 
-CPU:  python -m navperc.benchmark --weights best.pt --data data/yolo --device cpu \
-          --formats torch onnx openvino openvino-int8 --imgsz 640 960
-GPU:  run via cloud/modal_app.py::benchmark_gpu (formats torch torch-fp16 engine-fp16 engine-int8)
+CPU: python -m navperc.benchmark
+GPU: cloud/modal_app.py::benchmark_gpu (existing Modal workflow)
 """
 
 import argparse
@@ -26,12 +25,11 @@ from navperc.classes import CLASSES
 FORMATS = {
     # name: (ultralytics export kwargs or None for the raw .pt, predict kwargs)
     "torch": (None, {}),
-    "torch-fp16": (None, {"half": True}),
-    "onnx": ({"format": "onnx", "simplify": True}, {}),
+    "torch-fp16": (None, {"quantize": 16}),
     "openvino": ({"format": "openvino"}, {}),
-    "openvino-int8": ({"format": "openvino", "int8": True}, {}),
-    "engine-fp16": ({"format": "engine", "half": True}, {}),
-    "engine-int8": ({"format": "engine", "int8": True}, {}),
+    "openvino-int8": ({"format": "openvino", "quantize": 8}, {}),
+    "engine-fp16": ({"format": "engine", "quantize": 16}, {}),
+    "engine-int8": ({"format": "engine", "quantize": 8}, {}),
 }
 
 
@@ -51,7 +49,7 @@ def export(weights: Path, fmt: str, imgsz: int, data_yaml: Path, out_dir: Path, 
     if kwargs is None:
         return pt
     # int8 calibration uses the dataset's val split (representative of deployment data)
-    extra = {"data": str(data_yaml), "fraction": 0.3} if kwargs.get("int8") else {}
+    extra = {"data": str(data_yaml), "fraction": 0.3} if kwargs.get("quantize") == 8 else {}
     path = YOLO(str(pt)).export(imgsz=imgsz, batch=1, device=device, **kwargs, **extra)
     return Path(path)
 
@@ -63,7 +61,14 @@ def latency(model_path: Path, images, imgsz: int, device, predict_kwargs, warmup
     from ultralytics import YOLO
 
     model = YOLO(str(model_path), task="detect")
+    if not images:
+        raise ValueError("No benchmark images found")
+    if warmup < 1 or rounds < 1:
+        raise ValueError("warmup and rounds must be positive")
     frames = [cv2.imread(str(p)) for p in images]
+    for path, frame in zip(images, frames):
+        if frame is None:
+            raise ValueError(f"Cannot read benchmark image: {path}")
     for f in frames[:warmup]:
         model.predict(f, imgsz=imgsz, device=device, verbose=False, **predict_kwargs)
     all_times, round_medians, infer = [], [], []
@@ -92,7 +97,7 @@ def accuracy(model_path: Path, data_root: Path, imgsz: int, device, predict_kwar
     for source, classes in (("nuimages", ["cone", "barrier"]), ("mtsd", ["stop_sign"])):
         m = model.val(data=str(data_root / f"eval_{source}.yaml"), split="test", imgsz=imgsz, batch=1,
                       device=device, classes=[CLASSES.index(c) for c in classes], plots=False,
-                      verbose=False, half=predict_kwargs.get("half", False))
+                      verbose=False, **predict_kwargs)
         for c in classes:
             idx = list(m.box.ap_class_index).index(CLASSES.index(c))
             p, r, ap50, ap = m.box.class_result(idx)
@@ -101,70 +106,16 @@ def accuracy(model_path: Path, data_root: Path, imgsz: int, device, predict_kwar
     return out
 
 
-def restrict_cores(spec: str):
-    """Pin this process to a subset of cores to emulate a smaller edge CPU.
-
-    Assumes the i5-13400F layout: logical 0-11 = 6 performance cores x 2 hyper-threads,
-    12-15 = 4 efficiency cores. "p<N>": N performance cores (one thread each),
-    "e<N>": N efficiency cores, "all": no restriction.
-    """
-    import psutil
-    import torch
-
-    if spec == "all":
-        return None
-    kind, n = spec[0], int(spec[1:])
-    cores = [2 * i for i in range(n)] if kind == "p" else [12 + i for i in range(n)]
-    psutil.Process().cpu_affinity(cores)
-    torch.set_num_threads(n)
-    import cv2
-
-    cv2.setNumThreads(n)  # OpenCV's pool (resize/letterbox) also defaults to all logical cores
-    limit_runtime_threads(n, kind)
-    return cores
-
-
-def limit_runtime_threads(n: int, kind: str):
-    """Size OpenVINO / ONNX Runtime thread pools to the emulated core count.
-
-    Both runtimes size their pools from the whole machine by default, which oversubscribes a
-    pinned subset of cores. Ultralytics does not expose these options, so the constructors are
-    wrapped here (benchmark harness only); on a real device you would set the same properties.
-    """
-    import onnxruntime as ort
-    import openvino as ov
-
-    ov_extra = {"INFERENCE_NUM_THREADS": n, "ENABLE_HYPER_THREADING": False,
-                "SCHEDULING_CORE_TYPE": "ECORE_ONLY" if kind == "e" else "PCORE_ONLY"}
-    orig_compile = ov.Core.compile_model
-
-    def compile_model(self, model, device_name=None, config=None, **kw):
-        cfg = dict(config or {})
-        if device_name in (None, "CPU"):
-            cfg.update(ov_extra)
-        return orig_compile(self, model, device_name, cfg, **kw)
-
-    ov.Core.compile_model = compile_model
-
-    orig_session = ort.InferenceSession
-
-    class InferenceSession(orig_session):
-        def __init__(self, path, sess_options=None, *args, **kw):
-            sess_options = sess_options or ort.SessionOptions()
-            sess_options.intra_op_num_threads = n
-            sess_options.inter_op_num_threads = 1
-            # idle workers busy-wait by default and starve the pre-processing threads on few cores
-            sess_options.add_session_config_entry("session.intra_op.allow_spinning", "0")
-            super().__init__(path, sess_options, *args, **kw)
-
-    ort.InferenceSession = InferenceSession
-
-
-def run(weights, data_root, formats, sizes, device, n_images, out_dir, skip_accuracy=False, work_dir=None):
+def run(weights, data_root, formats, sizes, device, n_images, out_dir, work_dir=None):
     from navperc.datasets.yolo import write_data_yamls
 
+    if n_images < 1:
+        raise ValueError("n_images must be positive")
+    out_dir.mkdir(parents=True, exist_ok=True)
     write_data_yamls(data_root)
     test_imgs = sorted((data_root / "images" / "test").glob("*.jpg"))
+    if not test_imgs:
+        raise ValueError(f"No test JPG images in {data_root / 'images/test'}")
     rng = np.random.default_rng(0)
     images = [test_imgs[i] for i in rng.choice(len(test_imgs), size=min(n_images, len(test_imgs)), replace=False)]
 
@@ -175,8 +126,7 @@ def run(weights, data_root, formats, sizes, device, n_images, out_dir, skip_accu
             path = export(Path(weights), fmt, imgsz, data_root / "data.yaml", work_dir or out_dir, device)
             _, pk = FORMATS[fmt]
             row = {"format": fmt, "imgsz": imgsz, "size_mb": dir_size_mb(path), **latency(path, images, imgsz, device, pk)}
-            if not skip_accuracy:
-                row.update(accuracy(path, data_root, imgsz, device, pk))
+            row.update(accuracy(path, data_root, imgsz, device, pk))
             print(row)
             results.append(row)
             (out_dir / "results.json").write_text(json.dumps({"env": environment(device), "results": results}, indent=2))
@@ -208,24 +158,15 @@ def environment(device):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--weights", required=True)
-    ap.add_argument("--data", type=Path, required=True, help="YOLO dataset root with images/test")
-    ap.add_argument("--formats", nargs="+", default=["torch", "onnx", "openvino", "openvino-int8"], choices=list(FORMATS))
-    ap.add_argument("--imgsz", nargs="+", type=int, default=[640, 960])
-    ap.add_argument("--device", default="cpu")
-    ap.add_argument("--n-images", type=int, default=100)
-    ap.add_argument("--out", type=Path, default=Path("results/benchmark_cpu"), help="results.json goes here")
-    ap.add_argument("--work", type=Path, help="exported models go here (default: runs/exports/<out name>)")
-    ap.add_argument("--skip-accuracy", action="store_true")
-    ap.add_argument("--cores", default="all", help="emulate a smaller CPU: all | p1 | p2 | p4 | e4 ...")
+    ap.add_argument("--weights", type=Path, default=Path("weights/best.pt"))
+    ap.add_argument("--data", type=Path, default=Path("data/yolo"))
+    ap.add_argument("--out", type=Path, default=Path("results/benchmark_cpu"))
     args = ap.parse_args()
-    args.out.mkdir(parents=True, exist_ok=True)
-    pinned = restrict_cores(args.cores)
-    if pinned:
-        print(f"pinned to logical cores {pinned}")
-    work = args.work or Path("runs/exports") / args.out.name
-    run(args.weights, args.data.resolve(), args.formats, args.imgsz, args.device, args.n_images, args.out,
-        args.skip_accuracy, work)
+    if not args.weights.is_file():
+        ap.error(f"Missing weights: {args.weights}")
+    run(args.weights, args.data.resolve(), ["torch", "openvino", "openvino-int8"],
+        [640, 960], "cpu", 100, args.out,
+        work_dir=Path("runs/exports") / args.out.name)
 
 
 if __name__ == "__main__":

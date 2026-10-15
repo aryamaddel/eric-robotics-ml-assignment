@@ -158,7 +158,33 @@ All variants are exported from the same trained weights and **re-scored on the s
 - **end-to-end**: what a robot experiences (letterbox resize + inference + post-processing);
 - **inference only**: the network forward pass.
 
-**Measurement hygiene.** The i5-13400F mixes 6 performance cores (P) with 4 efficiency cores (E). Unpinned, Windows moved inference threads between core types and OpenVINO latency varied by ±25% between runs. Each configuration therefore runs **pinned to a fixed core set**, with every thread pool (PyTorch, OpenCV, OpenVINO) sized to it and busy-wait spinning disabled (`benchmark.py --cores`). Round-to-round spread is now < 5%. The same mechanism emulates a **smaller edge CPU** (4 E-cores).
+**Historical measurements.** The tables below include earlier runs pinned to performance or efficiency cores on the i5-13400F. The current scripts use library defaults, with no application-imposed affinity, thread-count, hyper-threading or scheduling overrides. Those older timings do not represent the current default configuration.
+
+### Running the assignment comparisons
+
+The CPU benchmark uses a fixed matrix: PyTorch FP32, OpenVINO FP32 and OpenVINO INT8, each at 640 and 960 px. Every run reports FPS, latency, model size and per-class test accuracy.
+
+```powershell
+uv run python -m navperc.benchmark
+```
+
+Only the existing path flags remain: `--weights`, `--data` and `--out`, defaulting to `weights/best.pt`, `data/yolo` and `results/benchmark_cpu`. To compare the supplied pruned model, run the same benchmark with its weights and a separate output folder:
+
+```powershell
+uv run python -m navperc.benchmark --weights weights/best_pruned30.pt --out results/benchmark_cpu_pruned
+```
+
+All use CPU batch 1, default runtime thread settings, 100 deterministically selected test images, 10 warm-up frames and three timing rounds. Accuracy uses the full per-source test splits. Quantization calibrates on 30% of validation data. Results are saved as `results.json` in the output folder; exports go to `runs/exports/<output folder name>/`. GPU comparison remains `modal run cloud/modal_app.py::benchmark_gpu`.
+
+Generate CPU detections and distance labels with:
+
+```powershell
+uv run python -m navperc.predict --camera configs/camera_nuscenes_front.yaml --source path/to/image.jpg
+```
+
+Prediction defaults to the final weights, confidence 0.35 and 960 px. Optional `--imgsz` accepts only the tested sizes, 640 or 960. `--weights` can select an exported OpenVINO model directory, and `--out` changes the output folder. The camera config must match the input camera.
+
+CPU prediction and benchmarking leave PyTorch, OpenCV and OpenVINO thread management to their defaults. Detector timing includes preprocessing, inference and postprocessing; it excludes decoding, distance estimation, drawing and output encoding.
 
 ### 5.1 Accuracy of each export (test mAP50)
 
