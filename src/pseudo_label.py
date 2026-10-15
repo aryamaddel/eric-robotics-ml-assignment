@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 from ultralytics import YOLO
 
-from navperc.classes import CLASS_ID
+from classes import CLASS_ID
 
 
 def read_labels(path: Path):

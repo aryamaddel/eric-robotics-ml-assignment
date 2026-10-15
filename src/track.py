@@ -9,7 +9,7 @@ detections by IoU (greedy), which keeps identities stable and corrects drift.
 This cuts detector calls by ~N x (an edge-compute saving) and gives each object a distance
 history, from which a closing speed is estimated by a linear fit over the last second.
 
-    python -m navperc.track --weights best.pt --nusc data/nuscenes --scene scene-0553 --out runs/track
+    python src/track.py --weights best.pt --nusc data/nuscenes --scene scene-0553 --out runs/track
 """
 
 import argparse
@@ -19,9 +19,9 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from navperc.classes import CLASSES, DISPLAY
-from navperc.distance import Camera, DistanceEstimator
-from navperc.eval_distance import load_tables
+from classes import CLASSES, DISPLAY
+from distance import Camera, DistanceEstimator
+from eval_distance import load_tables
 
 LK = dict(winSize=(21, 21), maxLevel=3, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 0.01))
 COLORS = {"cone": (0, 140, 255), "barrier": (0, 220, 255), "stop_sign": (40, 40, 230)}

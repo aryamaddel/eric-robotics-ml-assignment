@@ -6,7 +6,7 @@ lists every member's offset, so we read that, then fetch just the byte ranges
 of the members we want.
 
 Usage:
-    python scripts/fetch_remote_zip_members.py --urls urls.txt --keys keys.txt --out data/mtsd/images
+    python src/fetch_remote_zip_members.py --urls urls.txt --keys keys.txt --out data/mtsd/images
 where urls.txt has one (signed) zip URL per line and keys.txt one image key per
 line (member basename without extension).
 """

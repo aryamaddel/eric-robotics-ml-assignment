@@ -1,10 +1,10 @@
 """Detect cones / barriers / stop signs and annotate each with its estimated distance.
 
-    python -m navperc.predict --weights best.pt --camera nuscenes \
+    python src/predict.py --weights best.pt --camera nuscenes \
         --source path/to/images_or_video --out runs/predict
 
 Runs the baseline .pt weights or optimized OpenVINO model on CPU.
-Labels are drawn as "Cone, 1.5m". GPU inference uses cloud/modal_app.py::infer.
+Labels are drawn as "Cone, 1.5m". GPU inference uses src/modal_app.py::infer.
 """
 
 import argparse
@@ -14,8 +14,8 @@ from pathlib import Path
 import cv2
 from ultralytics import YOLO
 
-from navperc.classes import CLASSES, DISPLAY
-from navperc.distance import Camera, DistanceEstimator
+from classes import CLASSES, DISPLAY
+from distance import Camera, DistanceEstimator
 
 COLORS = {"cone": (0, 140, 255), "barrier": (0, 220, 255), "stop_sign": (40, 40, 230)}
 

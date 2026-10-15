@@ -8,6 +8,8 @@ Detect **cones, barriers and stop signs**, estimate their distance from the came
 
 ## Setup and data
 
+This is a collection of assignment scripts in `src/`, not an installable application. `uv` manages dependencies only; run scripts directly with `uv run python src/<script>.py`.
+
 ```powershell
 uv sync
 ```
@@ -16,14 +18,14 @@ The supplied final and 30% pruned weights are in `weights/`. Prediction needs no
 
 The detector is COCO-pretrained YOLO26n, fine-tuned on **nuImages** cones/barriers and **Mapillary Traffic Sign Dataset** stop signs. BDD100K lacks the required per-class detection labels; the brief allows other datasets. Evaluation is per source to avoid penalizing objects without labels. nuImages evaluation splits are separated by driving log; stop-sign pseudo-labels were visually reviewed before training.
 
-Dataset preparation lives in `src/navperc/datasets/`, `scripts/fetch_remote_zip_members.py` and `cloud/fetch_app.py`. nuImages/nuScenes and MTSD are for non-commercial/research use under their respective terms.
+Dataset preparation lives in `src/prepare_nuimages.py`, `src/prepare_mtsd.py`, `src/fetch_remote_zip_members.py` and `src/fetch_app.py`. nuImages/nuScenes and MTSD are for non-commercial/research use under their respective terms.
 
 ## Run
 
 Detect objects and annotate distances on an image, image folder or video:
 
 ```powershell
-uv run python -m navperc.predict --camera nuscenes --source path/to/image.jpg
+uv run python src/predict.py --camera nuscenes --source path/to/image.jpg
 ```
 
 `--camera nuscenes` uses the built-in front-camera calibration; `--camera generic` assumes a 70° horizontal field of view and gives approximate distances. Defaults: `weights/best.pt`, 960 px, confidence 0.35, output `runs/predict/`. Existing `--weights`, `--out` and `--imgsz {640,960}` options support exported models and the tested resolutions.
@@ -31,9 +33,9 @@ uv run python -m navperc.predict --camera nuscenes --source path/to/image.jpg
 Compare PyTorch FP32, OpenVINO FP32 and OpenVINO INT8 at 640 and 960 px:
 
 ```powershell
-uv run python -m navperc.benchmark
-uv run python -m navperc.benchmark --weights weights/best_pruned30.pt --out results/benchmark_cpu_pruned
-uv run python scripts/report_tables.py
+uv run python src/benchmark.py
+uv run python src/benchmark.py --weights weights/best_pruned30.pt --out results/benchmark_cpu_pruned
+uv run python src/report_tables.py
 ```
 
 Only path overrides remain: `--weights`, `--data`, `--out`. CPU libraries use their defaults with **no custom thread limits or affinity**. Timing uses batch 1, 100 fixed test images, 10 warm-up frames and three rounds. It includes preprocessing, inference and postprocessing, excluding decoding, distance labels, drawing and output encoding. Accuracy uses the full per-source test splits; INT8 calibrates on 30% of validation data.
@@ -41,28 +43,27 @@ Only path overrides remain: `--weights`, `--data`, `--out`. CPU libraries use th
 Train or evaluate on Modal (requires account setup, dataset volume and `uv sync --group dev`):
 
 ```powershell
-uv run modal run --detach cloud/modal_app.py::train
-uv run modal run cloud/modal_app.py::evaluate --name yolo26n_960_v3
-uv run modal run cloud/modal_app.py::benchmark_gpu
+uv run modal run --detach src/modal_app.py::train
+uv run modal run src/modal_app.py::evaluate --name yolo26n_960_v3
+uv run modal run src/modal_app.py::benchmark_gpu
 ```
 
-Training fixes the final recipe: YOLO26n, 960 px, reviewed v3 data, cosine LR and mosaic disabled for the last 10 epochs. Only `--epochs`, `--batch` and `--name` remain. `NAVPERC_GPU` and `NAVPERC_CPUS` select cloud resources; defaults are L4 and 8 CPUs. Existing dataset archives and trained weights on `navperc-data` remain usable. Pruning uses `cloud/prune_app.py::prune_finetune` with the supplied 30% / 30-epoch defaults.
+Training fixes the final recipe: YOLO26n, 960 px, reviewed v3 data, cosine LR and mosaic disabled for the last 10 epochs. Only `--epochs`, `--batch` and `--name` remain. GPU types are set directly in the Modal decorators: H100 for training, evaluation, pruning and inference; L4 for the TensorRT benchmark. `NAVPERC_CPUS` selects the CPU allocation (default 8). Existing dataset archives and trained weights on `navperc-data` remain usable. Pruning uses `src/prune_app.py::prune_finetune` with the supplied 30% / 30-epoch defaults.
 
 ## GPU inference on Modal
 
-Upload your image or video, choose the GPU, then run annotated inference:
+Upload your image or video, then run annotated inference on the hardcoded H100:
 
 ```powershell
 uv sync --group dev
-$env:NAVPERC_GPU = "H100"
 uv run modal volume put navperc-data "D:\path\to\input.mp4" /inputs/input.mp4
-uv run modal run cloud/modal_app.py::infer --source inputs/input.mp4 --camera generic
+uv run modal run src/modal_app.py::infer --source inputs/input.mp4 --camera generic
 uv run modal volume get navperc-data /runs/yolo26n_960_v3/inference/input runs/modal_inference
 ```
 
 `--source` is the uploaded path relative to the Modal volume root, not your local Windows path. It also accepts an uploaded image folder. `--camera generic` assumes a 70-degree horizontal field of view; use `nuscenes` for matching nuScenes front-camera images. Output video is `input_annotated.mp4`; image inference saves annotated images and `detections.json`.
 
-The default weights are `/runs/yolo26n_960_v3/weights/best.pt` on `navperc-data`. Use `--name` for another trained run. Set `$env:NAVPERC_GPU = "L4"` or `"T4"` before the command to request another GPU, or `Remove-Item Env:NAVPERC_GPU` to restore the L4 default. This setting controls training, evaluation and inference; the existing TensorRT benchmark explicitly uses an L4. Inference uses CUDA device 0 and retains the distance annotations. No GPU jobs were launched while adding this entry point.
+The default weights are `/runs/yolo26n_960_v3/weights/best.pt` on `navperc-data`. Use `--name` for another trained run. To change GPUs, edit `gpu="H100"` on the relevant `@app.function(...)` in `src/modal_app.py` (or `src/prune_app.py` for pruning), for example to `gpu="L4"` or `gpu="T4"`. The TensorRT benchmark keeps its explicit `gpu="L4"`. Inference uses CUDA device 0 and retains the distance annotations. No GPU jobs were launched while adding this entry point.
 
 ## Results
 
@@ -157,8 +158,8 @@ keys = positive + random.Random(0).sample(negative, min(600, len(negative)))
 Obtain fresh image-archive URLs from the dataset provider and save one ZIP URL per line in `data/mtsd/image_urls.txt`; the temporary signed URLs have been removed. Download selected images with:
 
 ```powershell
-uv run python scripts/fetch_remote_zip_members.py --urls data/mtsd/image_urls.txt --keys data/mtsd/selected_keys.txt --out data/mtsd/images
-uv run python -m navperc.datasets.mtsd --mtsd-root data/mtsd --images data/mtsd/images --out data/yolo
+uv run python src/fetch_remote_zip_members.py --urls data/mtsd/image_urls.txt --keys data/mtsd/selected_keys.txt --out data/mtsd/images
+uv run python src/prepare_mtsd.py --mtsd-root data/mtsd --images data/mtsd/images --out data/yolo
 ```
 
 The converter excludes panoramas and assigns train/validation/test splits. A separate exploratory No Entry list sampled up to 800 training images with seed 1 and included all matching validation images, excluding panoramas and stop-sign images; this was an audit candidate list, not the final training subset. It can be regenerated from annotation labels beginning with `regulatory--no-entry--` and the official split files.

@@ -1,4 +1,4 @@
-"""Print current CPU and GPU benchmark tables: python scripts/report_tables.py."""
+"""Print current CPU and GPU benchmark tables: python src/report_tables.py."""
 
 import json
 from pathlib import Path

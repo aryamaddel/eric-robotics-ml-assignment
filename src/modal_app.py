@@ -1,7 +1,7 @@
 """Cloud steps on Modal: label handling, GPU training, evaluation and GPU benchmarks.
 
 Everything lives on one Modal Volume ("navperc-data"):
-    /data/nuimages      selected nuImages frames (streamed by cloud/fetch_app.py, never stored locally)
+    /data/nuimages      selected nuImages frames (streamed by src/fetch_app.py, never stored locally)
     /data/yolo          merged YOLO dataset as individual files (MTSD part uploaded from the local machine)
     /data/yolo_v3.tar   the same dataset, prepared for training (see stage_dataset), as ONE file
     /data/runs          training runs / weights / benchmark results
@@ -12,9 +12,9 @@ unpack that archive.
 
 Typical sequence (final model = data variant v3):
     modal volume put navperc-data data/yolo /yolo                             # MTSD stop-sign subset
-    modal run --detach cloud/fetch_app.py --url "<nuImages samples tgz URL>"  # CPU only
-    NAVPERC_GPU=H100 NAVPERC_CPUS=16 modal run --detach cloud/modal_app.py::train --batch 64
-    modal run cloud/modal_app.py::benchmark_gpu                               # TensorRT etc. on an L4
+    modal run --detach src/fetch_app.py --url "<nuImages samples tgz URL>"  # CPU only
+    modal run --detach src/modal_app.py::train --batch 64
+    modal run src/modal_app.py::benchmark_gpu                               # TensorRT etc. on an L4
 """
 
 import os
@@ -26,22 +26,24 @@ APP_DIR = Path(__file__).resolve().parent.parent
 app = modal.App("navperc")
 vol = modal.Volume.from_name("navperc-data", create_if_missing=True)
 
-# GPU for training/eval, e.g. NAVPERC_GPU=H100 modal run ... (baked into the image so the
-# container sees the same function definitions)
-GPU = os.environ.get("NAVPERC_GPU", "L4")
 CPUS = int(os.environ.get("NAVPERC_CPUS", "8"))
 
 base_image = (
     modal.Image.debian_slim(python_version="3.12")
     .apt_install("libgl1", "libglib2.0-0")
     .uv_pip_install("ultralytics==8.4.177", "pyyaml")
-    .env({"NAVPERC_GPU": GPU, "NAVPERC_CPUS": str(CPUS)})
+    .env({"NAVPERC_CPUS": str(CPUS)})
 )
-image = (base_image.add_local_file(APP_DIR / "results/stop_sign_audit/teacher_candidates_review.json", "/assets/review.json")
-         .add_local_python_source("navperc"))
-# Local sources must be the last layer, so the TensorRT image branches from the base.
-trt_image = (base_image.uv_pip_install("tensorrt-cu12", "nvidia-modelopt[onnx]", "onnx", "onnxslim", "onnxruntime-gpu")
-             .add_local_python_source("navperc"))
+image = (
+    base_image.add_local_file(APP_DIR / "results/stop_sign_audit/teacher_candidates_review.json", "/assets/review.json")
+    .env({"PYTHONPATH": "/root/src"})
+    .add_local_dir(APP_DIR / "src", "/root/src", copy=True, ignore=["**/__pycache__/**"])
+)
+trt_image = (
+    base_image.uv_pip_install("tensorrt-cu12", "nvidia-modelopt[onnx]", "onnx", "onnxslim", "onnxruntime-gpu")
+    .env({"PYTHONPATH": "/root/src"})
+    .add_local_dir(APP_DIR / "src", "/root/src", copy=True, ignore=["**/__pycache__/**"])
+)
 
 DATA = Path("/data")
 LOCAL = Path("/tmp/yolo")
@@ -68,9 +70,9 @@ def stage_dataset() -> Path:
     import tarfile
     import time
 
-    from navperc.classes import CLASS_ID
-    from navperc.datasets.yolo import write_data_yamls
-    from navperc.pseudo_label import apply_review, strip_class
+    from classes import CLASS_ID
+    from data_utils import write_data_yamls
+    from pseudo_label import apply_review, strip_class
 
     archive = ARCHIVE
     t0 = time.time()
@@ -96,7 +98,7 @@ def stage_dataset() -> Path:
     return LOCAL
 
 
-@app.function(image=image, volumes={"/data": vol}, gpu=GPU, cpu=CPUS, memory=49152, timeout=10 * 3600)
+@app.function(image=image, volumes={"/data": vol}, gpu="H100", cpu=CPUS, memory=49152, timeout=10 * 3600)
 def train(epochs: int = 60, batch: int = 32, name: str = "yolo26n_960_v3"):
     """Fine-tune the final YOLO26n recipe at 960 px on reviewed v3 labels."""
     from ultralytics import YOLO
@@ -110,7 +112,7 @@ def train(epochs: int = 60, batch: int = 32, name: str = "yolo26n_960_v3"):
     return run_eval(root, name, 960)
 
 
-@app.function(image=image, volumes={"/data": vol}, gpu=GPU, cpu=CPUS, memory=16384, timeout=3600)
+@app.function(image=image, volumes={"/data": vol}, gpu="H100", cpu=CPUS, memory=16384, timeout=3600)
 def evaluate(name: str, imgsz: int = 960, weights: str = "best.pt"):
     return run_eval(stage_dataset(), name, imgsz, weights)
 
@@ -119,7 +121,7 @@ def run_eval(root: Path, name: str, imgsz: int, weights: str = "best.pt"):
     """Per-source test metrics: cones/barriers on nuImages test, stop signs on MTSD test."""
     import json
 
-    from navperc.benchmark import accuracy
+    from benchmark import accuracy
 
     out = accuracy(DATA / "runs" / name / "weights" / weights, root, imgsz, 0, batch=16)
     (DATA / "runs" / name / f"test_metrics_{imgsz}.json").write_text(json.dumps(out, indent=2))
@@ -132,7 +134,7 @@ def run_eval(root: Path, name: str, imgsz: int, weights: str = "best.pt"):
 @app.function(image=trt_image, volumes={"/data": vol}, gpu="L4", cpu=8, memory=32768, timeout=3 * 3600)
 def benchmark_gpu(name: str = "yolo26n_960_v3", sizes: str = "640,960", n_images: int = 200):
     """GPU speed/accuracy on an L4 (closer to deployment hardware than the H100 used for training)."""
-    from navperc.benchmark import run
+    from benchmark import run
 
     root = stage_dataset()
     out = DATA / "runs" / name / "benchmark_gpu"
@@ -144,10 +146,10 @@ def benchmark_gpu(name: str = "yolo26n_960_v3", sizes: str = "640,960", n_images
     return results
 
 
-@app.function(image=image, volumes={"/data": vol}, gpu=GPU, cpu=CPUS, memory=16384, timeout=3600)
+@app.function(image=image, volumes={"/data": vol}, gpu="H100", cpu=CPUS, memory=16384, timeout=3600)
 def infer(source: str, camera: str, name: str = "yolo26n_960_v3"):
     """Annotate a source image, image folder or video uploaded to navperc-data."""
-    from navperc.predict import run
+    from predict import run
 
     if camera not in ("nuscenes", "generic"):
         raise ValueError("camera must be nuscenes or generic")

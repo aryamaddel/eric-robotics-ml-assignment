@@ -7,8 +7,8 @@ For each (format, imgsz):
   3. accuracy: per-source test metrics (cones/barriers on nuImages, stop signs on MTSD),
   4. model file size.
 
-CPU: python -m navperc.benchmark
-GPU: cloud/modal_app.py::benchmark_gpu (existing Modal workflow)
+CPU: python src/benchmark.py
+GPU: src/modal_app.py::benchmark_gpu (existing Modal workflow)
 """
 
 import argparse
@@ -20,7 +20,7 @@ from pathlib import Path
 
 import numpy as np
 
-from navperc.classes import CLASSES
+from classes import CLASSES
 
 FORMATS = {
     # name: (ultralytics export kwargs or None for the raw .pt, predict kwargs)
@@ -108,7 +108,7 @@ def accuracy(model_path: Path, data_root: Path, imgsz: int, device, predict_kwar
 
 
 def run(weights, data_root, formats, sizes, device, n_images, out_dir, work_dir=None):
-    from navperc.datasets.yolo import write_data_yamls
+    from data_utils import write_data_yamls
 
     if n_images < 1:
         raise ValueError("n_images must be positive")

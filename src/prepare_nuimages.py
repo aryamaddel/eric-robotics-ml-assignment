@@ -10,9 +10,9 @@ Splits: nuImages train -> train; nuImages val is divided into val/test *by drivi
 so that near-duplicate frames from one drive never end up on both sides.
 
 Two-step usage, so only the selected images need extracting from the samples tar:
-  python -m navperc.datasets.nuimages select  --root data/nuimages --out data/nuimages/selection.json
+  python src/prepare_nuimages.py select  --root data/nuimages --out data/nuimages/selection.json
   tar -xf nuimages-v1.0-all-samples.tar -C data/nuimages -T data/nuimages/selection.txt
-  python -m navperc.datasets.nuimages convert --root data/nuimages --selection data/nuimages/selection.json --out data/yolo
+  python src/prepare_nuimages.py convert --root data/nuimages --selection data/nuimages/selection.json --out data/yolo
 """
 
 import argparse
@@ -21,8 +21,8 @@ import random
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from navperc.classes import CLASS_ID
-from navperc.datasets.yolo import split_by_hash, write_sample
+from classes import CLASS_ID
+from data_utils import split_by_hash, write_sample
 
 CATEGORY_MAP = {
     "movable_object.trafficcone": CLASS_ID["cone"],

@@ -51,7 +51,7 @@ def write_data_yamls(root: Path):
     """
     import yaml
 
-    from navperc.classes import CLASSES
+    from classes import CLASSES
 
     root = root.resolve()
     names = dict(enumerate(CLASSES))

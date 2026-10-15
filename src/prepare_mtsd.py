@@ -12,8 +12,8 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from navperc.classes import CLASS_ID
-from navperc.datasets.yolo import split_by_hash, write_sample
+from classes import CLASS_ID
+from data_utils import split_by_hash, write_sample
 
 STOP_PREFIX = "regulatory--stop--"
 

@@ -6,7 +6,7 @@
 AP50 is computed VOC-style (all-point interpolated precision/recall, IoU >= 0.5, one match
 per ground-truth box), identically for every method.
 
-    python scripts/eval_handcrafted.py --data data/yolo --weights weights/best.pt --out results/handcrafted
+    python src/eval_handcrafted.py --data data/yolo --weights weights/best.pt --out results/handcrafted
 """
 
 import argparse
@@ -17,8 +17,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from navperc.classes import CLASS_ID
-from navperc.handcrafted import detect_cones, detect_stop_signs, verify_stop_sign
+from classes import CLASS_ID
+from handcrafted import detect_cones, detect_stop_signs, verify_stop_sign
 
 
 def load_gt(label_path: Path, cls: int, w: int, h: int):

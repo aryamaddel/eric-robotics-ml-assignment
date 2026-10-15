@@ -3,7 +3,7 @@
 Kept separate from modal_app.py so it can run without GPU access. The ~16 GB archive is
 streamed through tar inside Modal's network, so it never touches the local machine.
 
-    modal run --detach cloud/fetch_app.py --url "https://.../nuimages-v1.0-all-samples.tgz"
+    modal run --detach src/fetch_app.py --url "https://.../nuimages-v1.0-all-samples.tgz"
 """
 
 import subprocess
@@ -21,7 +21,8 @@ image = (
     .uv_pip_install("ultralytics==8.4.177", "pyyaml")
     .add_local_file(APP_DIR / "data/nuimages/selection.json", "/assets/selection.json")
     .add_local_file(APP_DIR / "data/nuimages/selection.txt", "/assets/selection.txt")
-    .add_local_python_source("navperc")
+    .env({"PYTHONPATH": "/root/src"})
+    .add_local_dir(APP_DIR / "src", "/root/src", copy=True, ignore=["**/__pycache__/**"])
 )
 
 DATA = Path("/data")
@@ -41,7 +42,7 @@ def fetch_nuimages(url: str):
     print(f"tar exit code {rc}; extracted {n} of {len(Path('/assets/selection.txt').read_text().split())} frames")
     vol.commit()
 
-    from navperc.datasets.nuimages import convert
+    from prepare_nuimages import convert
     from types import SimpleNamespace
 
     convert(SimpleNamespace(root=out, selection=Path("/assets/selection.json"), out=DATA / "yolo", max_side=1600))

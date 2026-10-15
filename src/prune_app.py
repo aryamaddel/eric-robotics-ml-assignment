@@ -7,11 +7,10 @@ attention block are left intact. The pruned network is then fine-tuned with the 
 Ultralytics trainer (a trainer subclass returns the pruned module instead of rebuilding the
 model from its yaml, which would silently undo the pruning).
 
-    modal run cloud/prune_app.py::inspect --ratio 0.3        # CPU: pruning only, report MACs/params
-    NAVPERC_GPU=H100 modal run --detach cloud/prune_app.py::prune_finetune --ratio 0.3 --epochs 30
+    modal run src/prune_app.py::inspect --ratio 0.3        # CPU: pruning only, report MACs/params
+    modal run --detach src/prune_app.py::prune_finetune --ratio 0.3 --epochs 30
 """
 
-import os
 from pathlib import Path
 
 import modal
@@ -19,14 +18,13 @@ import modal
 APP_DIR = Path(__file__).resolve().parent.parent
 app = modal.App("navperc-prune")
 vol = modal.Volume.from_name("navperc-data")
-GPU = os.environ.get("NAVPERC_GPU", "H100")
 
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .apt_install("libgl1", "libglib2.0-0")
     .uv_pip_install("ultralytics==8.4.177", "pyyaml", "torch-pruning")
-    .env({"NAVPERC_GPU": GPU})
-    .add_local_python_source("navperc")
+    .env({"PYTHONPATH": "/root/src"})
+    .add_local_dir(APP_DIR / "src", "/root/src", copy=True, ignore=["**/__pycache__/**"])
 )
 DATA = Path("/data")
 BASE_RUN = "yolo26n_960_v3"
@@ -37,7 +35,7 @@ def prune(weights: str, ratio: float, imgsz: int = 640):
     import torch_pruning as tp
     from ultralytics import YOLO
 
-    from navperc.prune_utils import remove_splits
+    from prune_utils import remove_splits
 
     model = YOLO(weights).model.float().cpu()
     for p in model.parameters():
@@ -81,7 +79,7 @@ def inspect(ratio: float = 0.3):
     return stats
 
 
-@app.function(image=image, volumes={"/data": vol}, gpu=GPU, cpu=16, memory=49152, timeout=4 * 3600)
+@app.function(image=image, volumes={"/data": vol}, gpu="H100", cpu=16, memory=49152, timeout=4 * 3600)
 def prune_finetune(ratio: float = 0.3, epochs: int = 30):
     import json
     import shutil
@@ -89,7 +87,7 @@ def prune_finetune(ratio: float = 0.3, epochs: int = 30):
 
     from ultralytics.models.yolo.detect import DetectionTrainer
 
-    from navperc.datasets.yolo import write_data_yamls
+    from data_utils import write_data_yamls
 
     shutil.copyfile(DATA / "yolo_v3.tar", "/tmp/staged.tar")  # same data as the base model
     with tarfile.open("/tmp/staged.tar") as tf:
@@ -114,7 +112,7 @@ def prune_finetune(ratio: float = 0.3, epochs: int = 30):
     (DATA / "runs" / name / "prune_stats.json").write_text(json.dumps(stats, indent=2))
     vol.commit()
 
-    from navperc.benchmark import accuracy
+    from benchmark import accuracy
 
     out = {"prune": stats, **accuracy(DATA / "runs" / name / "weights" / "best.pt", root, 960, 0, batch=16)}
     (DATA / "runs" / name / "test_metrics_960.json").write_text(json.dumps(out, indent=2))

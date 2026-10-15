@@ -10,7 +10,7 @@ ground (e.g. the bottom-centre of a detection box, where the object touches the 
 metric ground coordinates, giving a size-independent distance estimate that we compare with
 the pinhole box-height estimate. Warping the image with H gives the top-down view.
 
-    python -m navperc.bev --weights best.pt --nusc data/nuscenes --out runs/bev --n 6
+    python src/bev.py --weights best.pt --nusc data/nuscenes --out runs/bev --n 6
 """
 
 import argparse
@@ -20,8 +20,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from navperc.distance import Camera, DistanceEstimator
-from navperc.eval_distance import load_tables, quat_to_rot
+from distance import Camera, DistanceEstimator
+from eval_distance import load_tables, quat_to_rot
 
 
 def ground_homography(K, R_cam_to_ego, t_cam_in_ego):
@@ -69,8 +69,8 @@ def front_camera_frames(t, n):
 def main():
     from ultralytics import YOLO
 
-    from navperc.classes import CLASSES
-    from navperc.predict import COLORS, annotate
+    from classes import CLASSES
+    from predict import COLORS, annotate
 
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--weights", required=True)

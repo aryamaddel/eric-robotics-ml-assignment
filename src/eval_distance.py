@@ -10,7 +10,7 @@ detector error; with `--weights` the detector's own boxes are matched to GT by I
 The nuScenes boxes also carry real object heights, so the script also reports class height
 priors fitted from data, evaluated leave-one-scene-out (no fitting on the evaluated scene).
 
-    python -m navperc.eval_distance --nusc data/nuscenes --version v1.0-mini --out runs/distance_eval
+    python src/eval_distance.py --nusc data/nuscenes --version v1.0-mini --out runs/distance_eval
 """
 
 import argparse
@@ -20,7 +20,7 @@ from pathlib import Path
 
 import numpy as np
 
-from navperc.distance import DEFAULT_HEIGHTS, Camera, DistanceEstimator
+from distance import DEFAULT_HEIGHTS, Camera, DistanceEstimator
 
 NUSC_TO_OURS = {"movable_object.trafficcone": "cone", "movable_object.barrier": "barrier"}
 CAMERAS = ["CAM_FRONT", "CAM_FRONT_LEFT", "CAM_FRONT_RIGHT", "CAM_BACK", "CAM_BACK_LEFT", "CAM_BACK_RIGHT"]
@@ -154,7 +154,7 @@ def match_detections(objs, nusc: Path, weights, imgsz=960, conf=0.25, iou_thr=0.
     import cv2
     from ultralytics import YOLO
 
-    from navperc.classes import CLASSES
+    from classes import CLASSES
 
     def iou(a, b):
         ix = max(0.0, min(a[2], b[2]) - max(a[0], b[0]))
