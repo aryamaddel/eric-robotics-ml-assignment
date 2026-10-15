@@ -1,6 +1,5 @@
 .venv/
 __pycache__/
-scratch/
 data/
 runs/
 *.pt

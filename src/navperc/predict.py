@@ -1,10 +1,10 @@
 """Detect cones / barriers / stop signs and annotate each with its estimated distance.
 
-    python -m navperc.predict --weights best.pt --camera configs/camera_nuscenes_front.yaml \
+    python -m navperc.predict --weights best.pt --camera nuscenes \
         --source path/to/images_or_video --out runs/predict
 
 Runs the baseline .pt weights or optimized OpenVINO model on CPU.
-Labels are drawn as "Cone, 1.5m". GPU comparisons use the separate Modal workflow.
+Labels are drawn as "Cone, 1.5m". GPU inference uses cloud/modal_app.py::infer.
 """
 
 import argparse
@@ -12,7 +12,6 @@ import json
 from pathlib import Path
 
 import cv2
-import yaml
 from ultralytics import YOLO
 
 from navperc.classes import CLASSES, DISPLAY
@@ -21,14 +20,20 @@ from navperc.distance import Camera, DistanceEstimator
 COLORS = {"cone": (0, 140, 255), "barrier": (0, 220, 255), "stop_sign": (40, 40, 230)}
 
 
-def load_camera(path: Path, width: int, height: int) -> Camera:
-    """Camera yaml: either K (3x3) with calib_width/height, or hfov_deg. Optional height_m."""
-    cfg = yaml.safe_load(path.read_text())
-    if "K" in cfg:
-        cam = Camera.from_K(cfg["K"], cfg.get("height_m"))
-        sx, sy = width / cfg["calib_width"], height / cfg["calib_height"]
-        return cam.scaled(sx, sy) if (sx, sy) != (1, 1) else cam
-    return Camera.from_fov(width, height, cfg["hfov_deg"], cfg.get("height_m"))
+def load_camera(preset: str, width: int, height: int) -> Camera:
+    """Built-in calibration presets; generic assumes an uncalibrated 70-degree HFOV."""
+    if preset == "generic":
+        return Camera.from_fov(width, height, 70)
+    if preset != "nuscenes":
+        raise ValueError(f"Unknown camera preset: {preset}")
+    # First CAM_FRONT calibration in nuScenes v1.0-mini, at 1600 x 900.
+    # Height above ground enables the ground-plane truncation fallback.
+    cam = Camera.from_K([
+        [1266.417203046554, 0.0, 816.2670197447984],
+        [0.0, 1266.417203046554, 491.50706579294757],
+        [0.0, 0.0, 1.0],
+    ], height_m=1.51)
+    return cam.scaled(width / 1600, height / 900)
 
 
 def annotate(frame, detections):
@@ -46,10 +51,10 @@ def annotate(frame, detections):
     return frame
 
 
-def detect(model, estimator_for, frame, conf, imgsz):
+def detect(model, estimator_for, frame, conf, imgsz, device="cpu"):
     h, w = frame.shape[:2]
     est = estimator_for(w, h)
-    r = model.predict(frame, conf=conf, imgsz=imgsz, device="cpu", verbose=False)[0]
+    r = model.predict(frame, conf=conf, imgsz=imgsz, device=device, verbose=False)[0]
     out = []
     for cls_id, score, box in zip(r.boxes.cls.tolist(), r.boxes.conf.tolist(), r.boxes.xyxy.tolist()):
         cls = CLASSES[int(cls_id)]
@@ -59,56 +64,62 @@ def detect(model, estimator_for, frame, conf, imgsz):
     return out
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--weights", default="weights/best.pt")
-    ap.add_argument("--camera", type=Path, required=True)
-    ap.add_argument("--source", type=Path, required=True, help="image, directory of images, or video")
-    ap.add_argument("--out", type=Path, default=Path("runs/predict"))
-    ap.add_argument("--imgsz", type=int, choices=[640, 960], default=960,
-                    help="960 for accuracy, 640 for the speed comparison")
-    args = ap.parse_args()
-
-    model = YOLO(args.weights, task="detect")
+def run(weights, camera, source: Path, out: Path, imgsz=960, device="cpu"):
+    """Shared annotated image/video inference for local CPU and Modal GPU."""
+    model = YOLO(weights, task="detect")
     cache = {}
 
     def estimator_for(w, h):
         if (w, h) not in cache:
-            cache[(w, h)] = DistanceEstimator(load_camera(args.camera, w, h))
+            cache[(w, h)] = DistanceEstimator(load_camera(camera, w, h))
         return cache[(w, h)]
 
-    args.out.mkdir(parents=True, exist_ok=True)
+    out.mkdir(parents=True, exist_ok=True)
     results = {}
-    if args.source.suffix.lower() in {".mp4", ".avi", ".mov", ".mkv"}:
-        cap = cv2.VideoCapture(str(args.source))
+    if source.suffix.lower() in {".mp4", ".avi", ".mov", ".mkv"}:
+        cap = cv2.VideoCapture(str(source))
         if not cap.isOpened():
-            raise ValueError(f"Cannot open video: {args.source}")
+            raise ValueError(f"Cannot open video: {source}")
         fps = cap.get(cv2.CAP_PROP_FPS) or 10
         writer = None
         while True:
             ok, frame = cap.read()
             if not ok:
                 break
-            dets = detect(model, estimator_for, frame, 0.35, args.imgsz)
+            dets = detect(model, estimator_for, frame, 0.35, imgsz, device)
             if writer is None:
                 h, w = frame.shape[:2]
-                writer = cv2.VideoWriter(str(args.out / f"{args.source.stem}_annotated.mp4"),
+                writer = cv2.VideoWriter(str(out / f"{source.stem}_annotated.mp4"),
                                          cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
             writer.write(annotate(frame, dets))
         cap.release()
         if writer:
             writer.release()
     else:
-        files = sorted(args.source.glob("*.jpg")) + sorted(args.source.glob("*.png")) if args.source.is_dir() else [args.source]
+        files = sorted(source.glob("*.jpg")) + sorted(source.glob("*.png")) if source.is_dir() else [source]
         for f in files:
             frame = cv2.imread(str(f))
             if frame is None:
                 raise ValueError(f"Cannot read image: {f}")
-            dets = detect(model, estimator_for, frame, 0.35, args.imgsz)
-            cv2.imwrite(str(args.out / f.name), annotate(frame, dets))
+            dets = detect(model, estimator_for, frame, 0.35, imgsz, device)
+            cv2.imwrite(str(out / f.name), annotate(frame, dets))
             results[f.name] = dets
-        (args.out / "detections.json").write_text(json.dumps(results, indent=2))
-    print(f"wrote results to {args.out}")
+        (out / "detections.json").write_text(json.dumps(results, indent=2))
+    print(f"wrote results to {out}")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--weights", default="weights/best.pt")
+    ap.add_argument("--camera", choices=["nuscenes", "generic"], required=True,
+                    help="nuScenes front calibration or generic 70-degree HFOV")
+    ap.add_argument("--source", type=Path, required=True, help="image, directory of images, or video")
+    ap.add_argument("--out", type=Path, default=Path("runs/predict"))
+    ap.add_argument("--imgsz", type=int, choices=[640, 960], default=960,
+                    help="960 for accuracy, 640 for the speed comparison")
+    args = ap.parse_args()
+
+    run(args.weights, args.camera, args.source, args.out, args.imgsz)
 
 
 if __name__ == "__main__":

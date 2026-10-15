@@ -70,13 +70,13 @@ def latency(model_path: Path, images, imgsz: int, device, predict_kwargs, warmup
         if frame is None:
             raise ValueError(f"Cannot read benchmark image: {path}")
     for f in frames[:warmup]:
-        model.predict(f, imgsz=imgsz, device=device, verbose=False, **predict_kwargs)
+        model.predict(f, imgsz=imgsz, device=device, verbose=False, **(predict_kwargs or {}))
     all_times, round_medians, infer = [], [], []
     for _ in range(rounds):
         times = []
         for f in frames:
             t0 = time.perf_counter()
-            r = model.predict(f, imgsz=imgsz, device=device, verbose=False, **predict_kwargs)
+            r = model.predict(f, imgsz=imgsz, device=device, verbose=False, **(predict_kwargs or {}))
             times.append((time.perf_counter() - t0) * 1000)
             infer.append(r[0].speed["inference"])  # network forward pass only
         all_times += times
@@ -89,19 +89,20 @@ def latency(model_path: Path, images, imgsz: int, device, predict_kwargs, warmup
             "round_medians_ms": [round(x, 2) for x in round_medians], "fps": round(1000 / med, 1)}
 
 
-def accuracy(model_path: Path, data_root: Path, imgsz: int, device, predict_kwargs):
+def accuracy(model_path: Path, data_root: Path, imgsz: int, device, predict_kwargs=None, batch=1):
     from ultralytics import YOLO
 
     model = YOLO(str(model_path), task="detect")
     out = {}
     for source, classes in (("nuimages", ["cone", "barrier"]), ("mtsd", ["stop_sign"])):
-        m = model.val(data=str(data_root / f"eval_{source}.yaml"), split="test", imgsz=imgsz, batch=1,
+        m = model.val(data=str(data_root / f"eval_{source}.yaml"), split="test", imgsz=imgsz, batch=batch,
                       device=device, classes=[CLASSES.index(c) for c in classes], plots=False,
-                      verbose=False, **predict_kwargs)
+                      verbose=False, **(predict_kwargs or {}))
         for c in classes:
             idx = list(m.box.ap_class_index).index(CLASSES.index(c))
             p, r, ap50, ap = m.box.class_result(idx)
-            out[c] = {"mAP50": round(float(ap50), 4), "mAP50-95": round(float(ap), 4)}
+            out[c] = {"precision": round(float(p), 4), "recall": round(float(r), 4),
+                      "mAP50": round(float(ap50), 4), "mAP50-95": round(float(ap), 4)}
     out["mean_mAP50"] = round(float(np.mean([out[c]["mAP50"] for c in CLASSES])), 4)
     return out
 

@@ -13,7 +13,7 @@ unpack that archive.
 Typical sequence (final model = data variant v3):
     modal volume put navperc-data data/yolo /yolo                             # MTSD stop-sign subset
     modal run --detach cloud/fetch_app.py --url "<nuImages samples tgz URL>"  # CPU only
-    NAVPERC_GPU=H100 NAVPERC_CPUS=16 modal run --detach cloud/modal_app.py::train --batch 64 --workers 16
+    NAVPERC_GPU=H100 NAVPERC_CPUS=16 modal run --detach cloud/modal_app.py::train --batch 64
     modal run cloud/modal_app.py::benchmark_gpu                               # TensorRT etc. on an L4
 """
 
@@ -45,11 +45,7 @@ trt_image = (base_image.uv_pip_install("tensorrt-cu12", "nvidia-modelopt[onnx]",
 
 DATA = Path("/data")
 LOCAL = Path("/tmp/yolo")
-# v1: COCO-teacher stop-sign detections added as labels (turned out to include many no-entry signs)
-# v2: the same teacher detections are greyed out instead (ignore regions), see pseudo_label.mask_regions
-# v3: the teacher candidates were reviewed visually; stop signs -> labels, look-alikes kept as
-#     hard negatives, uncertain -> greyed out (results/stop_sign_audit/teacher_candidates_review.json)
-ARCHIVES = {"v1": DATA / "yolo_pl.tar", "v2": DATA / "yolo_v2.tar", "v3": DATA / "yolo_v3.tar"}
+ARCHIVE = DATA / "yolo_v3.tar"
 
 
 def parallel_copy(src: Path, dst: Path, workers: int = 64):
@@ -65,8 +61,8 @@ def parallel_copy(src: Path, dst: Path, workers: int = 64):
     print(f"copied {len(files)} files")
 
 
-def stage_dataset(variant: str = "v3") -> Path:
-    """Local-disk copy of the dataset with the chosen handling of unlabelled stop signs."""
+def stage_dataset() -> Path:
+    """Stage the final reviewed-label dataset on local disk."""
     import json
     import shutil
     import tarfile
@@ -74,32 +70,23 @@ def stage_dataset(variant: str = "v3") -> Path:
 
     from navperc.classes import CLASS_ID
     from navperc.datasets.yolo import write_data_yamls
-    from navperc.pseudo_label import COCO_STOP_SIGN, apply_review, mask_regions, pseudo_label, strip_class
+    from navperc.pseudo_label import apply_review, strip_class
 
-    archive = ARCHIVES[variant]
+    archive = ARCHIVE
     t0 = time.time()
     if archive.exists():
         shutil.copyfile(archive, "/tmp/staged.tar")
         with tarfile.open("/tmp/staged.tar") as tf:
             tf.extractall("/tmp", filter="data")
-        print(f"staged {variant} from archive in {time.time() - t0:.0f}s")
+        print(f"staged v3 from archive in {time.time() - t0:.0f}s")
     else:
         parallel_copy(DATA / "yolo", LOCAL)
-        print(f"copied dataset in {time.time() - t0:.0f}s; preparing variant {variant}")
+        print(f"copied dataset in {time.time() - t0:.0f}s; preparing reviewed labels")
         stop = CLASS_ID["stop_sign"]
         # nuImages has no human stop-sign labels, so any class-2 line on a nuim_ frame is a stale pseudo-label
         strip_class(LOCAL / "labels/train", stop, prefix="nuim_")
-        if variant == "v1":
-            pseudo_label("yolo26x.pt", LOCAL / "images/train", LOCAL / "labels/train", {COCO_STOP_SIGN: stop},
-                         conf=0.5, imgsz=1280, prefix="nuim_", batch=16, device=0)
-        elif variant == "v3":
-            review = json.loads(Path("/assets/review.json").read_text())["regions"]
-            apply_review(review, LOCAL / "images/train", LOCAL / "labels/train", stop)
-        else:
-            masked = mask_regions("yolo26x.pt", LOCAL / "images/train", LOCAL / "labels/train", [COCO_STOP_SIGN],
-                                  [CLASS_ID["cone"], CLASS_ID["barrier"]], conf=0.25, imgsz=1280,
-                                  prefix="nuim_", batch=16, device=0)
-            (DATA / "masked_regions_v2.json").write_text(json.dumps(masked))
+        review = json.loads(Path("/assets/review.json").read_text())["regions"]
+        apply_review(review, LOCAL / "images/train", LOCAL / "labels/train", stop)
         with tarfile.open("/tmp/staged.tar", "w") as tf:
             tf.add(LOCAL, arcname="yolo")
         shutil.copyfile("/tmp/staged.tar", archive)
@@ -110,42 +97,31 @@ def stage_dataset(variant: str = "v3") -> Path:
 
 
 @app.function(image=image, volumes={"/data": vol}, gpu=GPU, cpu=CPUS, memory=49152, timeout=10 * 3600)
-def train(model: str = "yolo26n.pt", epochs: int = 60, imgsz: int = 960, batch: int = 32,
-          name: str = "yolo26n_960_v3", fraction: float = 1.0, workers: int = 8, data_variant: str = "v3"):
+def train(epochs: int = 60, batch: int = 32, name: str = "yolo26n_960_v3"):
+    """Fine-tune the final YOLO26n recipe at 960 px on reviewed v3 labels."""
     from ultralytics import YOLO
 
-    root = stage_dataset(data_variant)
-    y = YOLO(model)
-    y.train(data=str(root / "data.yaml"), epochs=epochs, imgsz=imgsz, batch=batch, workers=workers,
-            fraction=fraction, project=str(DATA / "runs"), name=name, exist_ok=True,
-            patience=15, cos_lr=True, close_mosaic=min(10, epochs // 2), seed=0, deterministic=False)
+    root = stage_dataset()
+    YOLO("yolo26n.pt").train(
+        data=str(root / "data.yaml"), epochs=epochs, imgsz=960, batch=batch, workers=CPUS,
+        project=str(DATA / "runs"), name=name, exist_ok=True, patience=15, cos_lr=True,
+        close_mosaic=min(10, epochs // 2), seed=0, deterministic=False)
     vol.commit()
-    return run_eval(root, name, imgsz)
+    return run_eval(root, name, 960)
 
 
 @app.function(image=image, volumes={"/data": vol}, gpu=GPU, cpu=CPUS, memory=16384, timeout=3600)
 def evaluate(name: str, imgsz: int = 960, weights: str = "best.pt"):
-    return run_eval(stage_dataset("v1"), name, imgsz, weights)  # test splits are identical in v1/v2
+    return run_eval(stage_dataset(), name, imgsz, weights)
 
 
 def run_eval(root: Path, name: str, imgsz: int, weights: str = "best.pt"):
     """Per-source test metrics: cones/barriers on nuImages test, stop signs on MTSD test."""
     import json
 
-    from ultralytics import YOLO
+    from navperc.benchmark import accuracy
 
-    from navperc.classes import CLASSES
-
-    model = YOLO(str(DATA / "runs" / name / "weights" / weights))
-    out = {}
-    for source, classes in (("nuimages", ["cone", "barrier"]), ("mtsd", ["stop_sign"])):
-        m = model.val(data=str(root / f"eval_{source}.yaml"), split="test", imgsz=imgsz, batch=16,
-                      classes=[CLASSES.index(c) for c in classes], plots=False, verbose=False)
-        for c in classes:
-            i = CLASSES.index(c)
-            p, r, ap50, ap = m.box.class_result(list(m.box.ap_class_index).index(i))
-            out[c] = {"precision": round(float(p), 4), "recall": round(float(r), 4),
-                      "mAP50": round(float(ap50), 4), "mAP50-95": round(float(ap), 4)}
+    out = accuracy(DATA / "runs" / name / "weights" / weights, root, imgsz, 0, batch=16)
     (DATA / "runs" / name / f"test_metrics_{imgsz}.json").write_text(json.dumps(out, indent=2))
     vol.commit()
     print(json.dumps(out, indent=2))
@@ -158,7 +134,7 @@ def benchmark_gpu(name: str = "yolo26n_960_v3", sizes: str = "640,960", n_images
     """GPU speed/accuracy on an L4 (closer to deployment hardware than the H100 used for training)."""
     from navperc.benchmark import run
 
-    root = stage_dataset("v1")  # test splits are identical in v1/v2; v1 archive already exists
+    root = stage_dataset()
     out = DATA / "runs" / name / "benchmark_gpu"
     out.mkdir(parents=True, exist_ok=True)
     results = run(DATA / "runs" / name / "weights" / "best.pt", root,
@@ -166,3 +142,19 @@ def benchmark_gpu(name: str = "yolo26n_960_v3", sizes: str = "640,960", n_images
                   [int(s) for s in sizes.split(",")], 0, n_images, out)
     vol.commit()
     return results
+
+
+@app.function(image=image, volumes={"/data": vol}, gpu=GPU, cpu=CPUS, memory=16384, timeout=3600)
+def infer(source: str, camera: str, name: str = "yolo26n_960_v3"):
+    """Annotate a source image, image folder or video uploaded to navperc-data."""
+    from navperc.predict import run
+
+    if camera not in ("nuscenes", "generic"):
+        raise ValueError("camera must be nuscenes or generic")
+    path = DATA / source.lstrip("/")
+    if not path.exists():
+        raise FileNotFoundError(f"Upload the source to navperc-data first: {path}")
+    out = DATA / "runs" / name / "inference" / path.stem
+    run(str(DATA / "runs" / name / "weights" / "best.pt"), camera, path, out, device=0)
+    vol.commit()
+    return str(out.relative_to(DATA))

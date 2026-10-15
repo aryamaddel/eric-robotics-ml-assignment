@@ -82,7 +82,7 @@ def inspect(ratio: float = 0.3):
 
 
 @app.function(image=image, volumes={"/data": vol}, gpu=GPU, cpu=16, memory=49152, timeout=4 * 3600)
-def prune_finetune(ratio: float = 0.3, epochs: int = 30, imgsz: int = 960, batch: int = 64):
+def prune_finetune(ratio: float = 0.3, epochs: int = 30):
     import json
     import shutil
     import tarfile
@@ -108,24 +108,15 @@ def prune_finetune(ratio: float = 0.3, epochs: int = 30, imgsz: int = 960, batch
 
     name = f"{BASE_RUN}_pruned{int(ratio * 100)}"
     y = YOLO(str(DATA / "runs" / BASE_RUN / "weights" / "best.pt"))
-    y.train(trainer=PrunedTrainer, data=str(root / "data.yaml"), epochs=epochs, imgsz=imgsz, batch=batch,
+    y.train(trainer=PrunedTrainer, data=str(root / "data.yaml"), epochs=epochs, imgsz=960, batch=64,
             workers=16, project=str(DATA / "runs"), name=name, exist_ok=True, lr0=0.002, warmup_epochs=1,
             cos_lr=True, close_mosaic=min(10, epochs // 3), patience=epochs, seed=0, deterministic=False, amp=True)
     (DATA / "runs" / name / "prune_stats.json").write_text(json.dumps(stats, indent=2))
     vol.commit()
 
-    from navperc.classes import CLASSES
+    from navperc.benchmark import accuracy
 
-    model = YOLO(str(DATA / "runs" / name / "weights" / "best.pt"))
-    out = {"prune": stats}
-    for source, classes in (("nuimages", ["cone", "barrier"]), ("mtsd", ["stop_sign"])):
-        m = model.val(data=str(root / f"eval_{source}.yaml"), split="test", imgsz=imgsz, batch=16,
-                      classes=[CLASSES.index(c) for c in classes], plots=False, verbose=False)
-        for c in classes:
-            i = list(m.box.ap_class_index).index(CLASSES.index(c))
-            p, r, ap50, ap = m.box.class_result(i)
-            out[c] = {"precision": round(float(p), 4), "recall": round(float(r), 4),
-                      "mAP50": round(float(ap50), 4), "mAP50-95": round(float(ap), 4)}
+    out = {"prune": stats, **accuracy(DATA / "runs" / name / "weights" / "best.pt", root, 960, 0, batch=16)}
     (DATA / "runs" / name / "test_metrics_960.json").write_text(json.dumps(out, indent=2))
     vol.commit()
     print(json.dumps(out, indent=2))

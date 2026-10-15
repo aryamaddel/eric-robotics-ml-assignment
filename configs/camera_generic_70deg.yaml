@@ -1,3 +1,0 @@
-# Uncalibrated camera fallback: focal length derived from horizontal field of view.
-# f = (W / 2) / tan(HFOV / 2). Replace with a real calibration (cv2.calibrateCamera) for accuracy.
-hfov_deg: 70
