@@ -1,7 +1,7 @@
 """Convert the stop-sign subset of the Mapillary Traffic Sign Dataset (MTSD v2) to YOLO format.
 
-MTSD only labels traffic signs, so cones/barriers in these images are unlabeled;
-they are filled in later by pseudo-labelling (see pseudo_label.py).
+MTSD only labels traffic signs, so cones/barriers in these images remain unlabeled.
+Detection evaluation scores stop signs on this source separately.
 
 Splits: MTSD train -> train; MTSD val is divided deterministically into val/test
 (MTSD's own test split has no public labels).

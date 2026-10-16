@@ -1,10 +1,42 @@
-# ERIC Robotics ML Assignment | Arya Maddel
+# ERIC Robotics ML Assignment
+
+**Name**: Arya Mandar Maddel
+
+**email**: aryamaddel@gmail.com
+
+**phone number**: 8806642286
 
 Detect **cones, barriers and stop signs**, estimate their distance from the camera, and compare CPU/GPU deployment optimizations. Includes bird’s-eye projection, optical-flow tracking and the stereo disparity–depth derivation.
 
-**Contact:** aryamaddel@gmail.com · 8806642286
-
 ![Detections and distances](results/demo/stop_sign_nuimages_0.jpg)
+
+## Steps taken for the assignment
+
+1. **Choose datasets for the required classes.** BDD100K does not provide the cone, barrier and stop-sign detection labels needed here. We chose **nuImages** for cones/barriers and **Mapillary Traffic Sign Dataset (MTSD)** for stop signs, as the assignment allows other relevant datasets.
+
+2. **Prepare the data.** We selected relevant images and background/hard-negative examples, converted bounding boxes to YOLO format, and created training, validation and test splits. nuImages evaluation splits were separated by driving log to reduce leakage between similar frames; MTSD panoramas were excluded.
+
+3. **Start with a pretrained model.** We chose the lightweight **YOLO26n**, pretrained on COCO, to keep CPU inference practical instead of training a detector from scratch.
+
+4. **Handle incomplete labels across datasets.** Mapillary supplied human-labelled stop signs, but stop signs visible in nuImages still lacked labels. We used COCO-pretrained **YOLO26x** to propose those missing labels, then reviewed its mistakes before training YOLO26n. The explanation below covers why Mapillary alone did not solve this problem. Validation/test labels were left unchanged.
+
+5. **Apply transfer learning by fine-tuning.** We adapted the pretrained YOLO26n to our three classes using the prepared data. The final training run used 960 px inputs, a 60-epoch budget and an H100 GPU on Modal because a suitable local GPU was unavailable. Fine-tuning is the transfer-learning method used here, rather than a separate training stage.
+
+6. **Evaluate the detector.** We measured precision, recall, mAP50 and mAP50-95 on held-out data. Cones/barriers were evaluated on nuImages and stop signs on MTSD, so objects without source labels were not counted as detection errors for those classes. We also inspected stop-sign mistakes across domains and compared the label-handling variants.
+
+7. **Estimate distance from camera geometry.** For each detected box, we used camera intrinsics, bounding-box height and a class-height prior in the pinhole relation **Z = fy * H / h**. We converted depth to camera range, added a ground-plane fallback for top-truncated objects and drew labels such as `Cone, 6.4m`.
+
+8. **Validate distance estimates.** We matched detector boxes to nuScenes 3D ground truth for cones/barriers, measured absolute and relative errors by distance range, and compared default versus fitted height priors. Stop-sign distance remains an estimate without equivalent 3D-ground-truth validation in this project.
+
+9. **Compare CPU optimizations.** We exported OpenVINO FP32 and INT8 models, calibrated INT8 using validation images, and compared accuracy, latency, FPS and model size against PyTorch. We also tested input resolution and structured channel pruning followed by fine-tuning. CPU/GPU comparisons record the hardware and runtime settings; current CPU scripts leave thread management at library defaults.
+
+10. **Compare GPU inference.** On Modal's L4 GPU, we benchmarked PyTorch against TensorRT FP16 and INT8, reporting speed alongside accuracy. H100 training and L4 benchmarking serve different purposes; their results are reported separately.
+
+11. **Implement bird's-eye projection and tracking.** We used a calibrated ground-plane homography for a metric bird's-eye view, and Lucas-Kanade optical flow to propagate boxes between detector frames. Track distance histories also provided closing-speed estimates.
+
+12. **Explore stereo geometry and a classical baseline.** We derived **Z = fB/d** and its depth-error relation for rectified stereo. Separately, we evaluated handcrafted colour/shape detectors and a stop-sign verifier; they underperformed the final CNN and were not adopted. The stereo work is a derivation, not an implemented stereo depth pipeline.
+
+13. **Save evidence and simplify reproduction.** We retained trained weights, metrics, training plots, label audits and annotated demos. The implementation is a set of direct scripts in `src/`, with local CPU inference and Modal GPU training, evaluation and inference commands documented below.
 
 ## Setup and data
 
@@ -19,6 +51,35 @@ The supplied final and 30% pruned weights are in `weights/`. Prediction needs no
 The detector is COCO-pretrained YOLO26n, fine-tuned on **nuImages** cones/barriers and **Mapillary Traffic Sign Dataset** stop signs. BDD100K lacks the required per-class detection labels; the brief allows other datasets. Evaluation is per source to avoid penalizing objects without labels. nuImages evaluation splits are separated by driving log; stop-sign pseudo-labels were visually reviewed before training.
 
 Dataset preparation lives in `src/prepare_nuimages.py`, `src/prepare_mtsd.py`, `src/fetch_remote_zip_members.py` and `src/fetch_app.py`. nuImages/nuScenes and MTSD are for non-commercial/research use under their respective terms.
+
+## Why two datasets and a teacher model were needed
+
+**We used nuImages for cones/barriers and Mapillary (MTSD) for stop signs.** We did not choose nuImages because it labels stop signs. An image can contain an object even when the dataset does not annotate that object class.
+
+| Dataset | Human labels used | What can still be visible without labels |
+|---|---|---|
+| nuImages | Cones and barriers | Stop signs |
+| Mapillary / MTSD | Stop signs | Cones and barriers |
+
+**Why missing labels matter.** Imagine a nuImages training image with a labelled cone and an unlabelled stop sign. Standard detector training treats unmatched predictions as background, so it can penalize a correct stop-sign prediction there. Meanwhile, a labelled Mapillary image teaches it to detect stop signs. Combining the images without addressing incomplete labels therefore creates conflicting training signals.
+
+Ideally, every visible object belonging to our three target classes would be labelled. A few missed labels do not make training fail, but systematic omissions can hurt performance. Having labelled stop signs in Mapillary does not automatically fill missing labels in nuImages.
+
+**Why fine-tune if pretrained YOLO already knows stop signs?** COCO-pretrained YOLO already recognizes stop signs, but COCO does not provide dedicated traffic-cone and navigation-barrier classes for this task. We fine-tuned one lightweight **YOLO26n** to produce our three classes. Training changes shared weights, and changing the detection head does not guarantee that its original stop-sign capability survives unchanged. Keeping stop-sign examples in training helps preserve and adapt that capability while learning cones and barriers. This is transfer learning; we did not learn stop signs from zero. We have not established that fine-tuning improves stop-sign accuracy over pretrained YOLO without a direct baseline comparison.
+
+**Where the teacher came from.** Before training our own model, we used an already-trained **YOLO26x with COCO weights**. Its existing stop-sign class (COCO class ID 11) let it propose boxes in **nuImages training images**. It was not used to generate Mapillary's human labels. The teacher was larger because this was an offline label-proposal step where speed mattered less, and we hoped it would find difficult objects. A larger teacher was not required, and we did not compare teacher sizes to prove it was better.
+
+**Why we reviewed the predictions.** The teacher confused No Entry signs and other look-alikes with stop signs. Accepting those predictions automatically introduced wrong training labels. We visually reviewed 668 candidates:
+
+| Review decision | Candidates | Treatment in final training data |
+|---|---|---|
+| Real stop sign | 146 | Add a stop-sign bounding-box label |
+| Look-alike / not a stop sign | 364 | Leave visible without a stop-sign label, as a hard negative |
+| Uncertain | 158 | Grey out the region to avoid training on an ambiguous visible object |
+
+These decisions are saved in [`teacher_candidates_review.json`](results/stop_sign_audit/teacher_candidates_review.json). `src/pseudo_label.py` applies them after removing stale stop-sign labels from nuImages training files. This reproduces final label preparation without running the teacher again; the old automatic-labeling experiments have been removed. Greying out a region changes its pixels; it is not a special loss-ignore mechanism.
+
+**What this fixed, and what it did not.** Review reduced incorrect and missing stop-sign labels in nuImages; it did not guarantee that every stop sign was found. Cones/barriers visible in Mapillary may still be unlabelled, which remains a training limitation. We evaluate cones/barriers on nuImages and stop signs on Mapillary to avoid scoring detections against missing class annotations. That evaluation choice makes the reported metrics meaningful for each labelled source; it does not repair missing training labels. Validation and test labels were not changed by the teacher or review process.
 
 ## Run
 
@@ -69,19 +130,19 @@ The default weights are `/runs/yolo26n_960_v3/weights/best.pt` on `navperc-data`
 
 Final detector at 960 px (per-source held-out test sets):
 
-| Class | mAP50 | mAP50–95 |
-|---|---|---|
-| Cone | 0.863 | 0.521 |
-| Barrier | 0.769 | 0.501 |
-| Stop sign | 0.818 | 0.621 |
+| Class     | mAP50 | mAP50–95 |
+| --------- | ----- | -------- |
+| Cone      | 0.863 | 0.521    |
+| Barrier   | 0.769 | 0.501    |
+| Stop sign | 0.818 | 0.621    |
 
 Saved CPU run on the i5-13400F at 960 px:
 
-| Runtime | FPS | Mean mAP50 |
-|---|---|---|
-| PyTorch FP32 | 24.6 | 0.817 |
-| OpenVINO FP32 | 20.4 | 0.814 |
-| OpenVINO INT8 | 34.7 | 0.808 |
+| Runtime       | FPS  | Mean mAP50 |
+| ------------- | ---- | ---------- |
+| PyTorch FP32  | 24.6 | 0.817      |
+| OpenVINO FP32 | 20.4 | 0.814      |
+| OpenVINO INT8 | 34.7 | 0.808      |
 
 **These saved CPU measurements used the earlier four-thread configuration**, not the current library defaults. Rerun the benchmark to measure defaults. The table script reads the current saved CPU and GPU JSON directly; it does not combine accuracy and speed from different runs. Historical L4 results at 960 px: PyTorch **61 FPS**, TensorRT FP16 **178 FPS** (mean mAP50 0.811). Raw measurements: [`results/benchmark_cpu/`](results/benchmark_cpu/) and [`results/benchmark_gpu/`](results/benchmark_gpu/).
 
@@ -96,15 +157,15 @@ Distance uses the pinhole relation **Z = fy × H / h**, class-height priors and 
 
 ## Data and experiment notes
 
-| Split | nuImages images | MTSD images |
-|---|---|---|
-| Train | 8,800 | 1,609 |
-| Validation | 1,650 | 128 |
-| Test | 1,650 | 103 |
+| Split      | nuImages images | MTSD images |
+| ---------- | --------------- | ----------- |
+| Train      | 8,800           | 1,609       |
+| Validation | 1,650           | 128         |
+| Test       | 1,650           | 103         |
 
 Data sources: [nuImages/nuScenes](https://www.nuscenes.org/nuimages) and [MTSD](https://www.mapillary.com/dataset/trafficsign). nuImages labels cones and barriers; MTSD labels stop signs. The MTSD test subset contains only 81 stop signs, so its metrics are less stable.
 
-The initial teacher pseudo-labels confused No Entry signs with stop signs. Reviewing 668 candidates produced 146 stop-sign labels, 364 hard negatives and 158 masked uncertain regions. Correct stop-sign detections on the nuImages audit improved from 47% to 94%; [audit files](results/stop_sign_audit/) and [training ablations](results/training/ablation_test_metrics.json) preserve the evidence.
+After the label review described above, correct stop-sign detections on the nuImages audit improved from 47% to 94%; [audit files](results/stop_sign_audit/) and [training ablations](results/training/ablation_test_metrics.json) preserve the evidence.
 
 Structured pruning reduced compute but cost more accuracy than reducing input resolution in the earlier experiments. Historical pruning and core-pinned measurements remain in `results/benchmark_cpu_pruned_*`, `results/benchmark_cpu_p6/` and `results/benchmark_cpu_e4/`. These are separate from the current default-runtime benchmark. The handcrafted stop-sign baseline reached AP50 0.16 versus about 0.81 for the CNN; adding its verifier reduced CNN accuracy, so it is not used.
 
