@@ -117,10 +117,12 @@ def summarize(rows, key="range"):
     }
 
 
-def estimate_rows(objs, heights):
+def estimate_rows(objs, heights, camera="calibrated"):
     rows = []
     for o in objs:
-        est = DistanceEstimator(Camera.from_K(o["K"], o["cam_height"]), heights)
+        cam = (Camera.from_fov(1600, 900, 70) if camera == "generic"
+               else Camera.from_K(o["K"], o["cam_height"]))
+        est = DistanceEstimator(cam, heights)
         e = est.estimate(o["cls"], o["box"], image_size=(1600, 900))
         rows.append({**o, "est_range": e["range"], "est_depth": e["depth"], "method": e["method"]})
     return rows
@@ -212,6 +214,7 @@ def main():
                           "fitted_leave_one_scene_out": per_scene_heights},
         "gt_boxes": {
             "default_priors": report(estimate_rows(objs, DEFAULT_HEIGHTS)),
+            "generic_70deg_default_priors": report(estimate_rows(objs, DEFAULT_HEIGHTS, "generic")),
             "fitted_priors_leave_one_scene_out": report(loso_rows),
         },
     }
@@ -227,6 +230,7 @@ def main():
             "matched": len(matched),
             "match_rate": round(len(matched) / max(n_gt, 1), 3),
             "default_priors": report(estimate_rows(matched, DEFAULT_HEIGHTS)),
+            "generic_70deg_default_priors": report(estimate_rows(matched, DEFAULT_HEIGHTS, "generic")),
             "fitted_priors_leave_one_scene_out": report(det_loso),
         }
     args.out.mkdir(parents=True, exist_ok=True)

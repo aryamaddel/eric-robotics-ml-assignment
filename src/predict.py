@@ -1,6 +1,6 @@
 """Detect cones / barriers / stop signs and annotate each with its estimated distance.
 
-    python src/predict.py --weights best.pt --camera nuscenes \
+    python src/predict.py --weights best.pt \
         --source path/to/images_or_video --out runs/predict
 
 Runs the baseline .pt weights or optimized OpenVINO model on CPU.
@@ -20,12 +20,8 @@ from distance import Camera, DistanceEstimator
 COLORS = {"cone": (0, 140, 255), "barrier": (0, 220, 255), "stop_sign": (40, 40, 230)}
 
 
-def load_camera(preset: str, width: int, height: int) -> Camera:
-    """Built-in calibration presets; generic assumes an uncalibrated 70-degree HFOV."""
-    if preset == "generic":
-        return Camera.from_fov(width, height, 70)
-    if preset != "nuscenes":
-        raise ValueError(f"Unknown camera preset: {preset}")
+def load_camera(width: int, height: int) -> Camera:
+    """Fixed nuScenes front-camera calibration, scaled to the input resolution."""
     # First CAM_FRONT calibration in nuScenes v1.0-mini, at 1600 x 900.
     # Height above ground enables the ground-plane truncation fallback.
     cam = Camera.from_K([
@@ -64,14 +60,14 @@ def detect(model, estimator_for, frame, conf, imgsz, device="cpu"):
     return out
 
 
-def run(weights, camera, source: Path, out: Path, imgsz=960, device="cpu"):
+def run(weights, source: Path, out: Path, imgsz=960, device="cpu"):
     """Shared annotated image/video inference for local CPU and Modal GPU."""
     model = YOLO(weights, task="detect")
     cache = {}
 
     def estimator_for(w, h):
         if (w, h) not in cache:
-            cache[(w, h)] = DistanceEstimator(load_camera(camera, w, h))
+            cache[(w, h)] = DistanceEstimator(load_camera(w, h))
         return cache[(w, h)]
 
     out.mkdir(parents=True, exist_ok=True)
@@ -111,15 +107,13 @@ def run(weights, camera, source: Path, out: Path, imgsz=960, device="cpu"):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--weights", default="weights/best.pt")
-    ap.add_argument("--camera", choices=["nuscenes", "generic"], required=True,
-                    help="nuScenes front calibration or generic 70-degree HFOV")
     ap.add_argument("--source", type=Path, required=True, help="image, directory of images, or video")
     ap.add_argument("--out", type=Path, default=Path("runs/predict"))
     ap.add_argument("--imgsz", type=int, choices=[640, 960], default=960,
                     help="960 for accuracy, 640 for the speed comparison")
     args = ap.parse_args()
 
-    run(args.weights, args.camera, args.source, args.out, args.imgsz)
+    run(args.weights, args.source, args.out, args.imgsz)
 
 
 if __name__ == "__main__":

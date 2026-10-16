@@ -147,16 +147,14 @@ def benchmark_gpu(name: str = "yolo26n_960_v3", sizes: str = "640,960", n_images
 
 
 @app.function(image=image, volumes={"/data": vol}, gpu="H100", cpu=CPUS, memory=16384, timeout=3600)
-def infer(source: str, camera: str, name: str = "yolo26n_960_v3"):
+def infer(source: str, name: str = "yolo26n_960_v3"):
     """Annotate a source image, image folder or video uploaded to navperc-data."""
     from predict import run
 
-    if camera not in ("nuscenes", "generic"):
-        raise ValueError("camera must be nuscenes or generic")
     path = DATA / source.lstrip("/")
     if not path.exists():
         raise FileNotFoundError(f"Upload the source to navperc-data first: {path}")
     out = DATA / "runs" / name / "inference" / path.stem
-    run(str(DATA / "runs" / name / "weights" / "best.pt"), camera, path, out, device=0)
+    run(str(DATA / "runs" / name / "weights" / "best.pt"), path, out, device=0)
     vol.commit()
     return str(out.relative_to(DATA))

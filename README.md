@@ -86,10 +86,12 @@ These decisions are saved in [`teacher_candidates_review.json`](results/stop_sig
 Detect objects and annotate distances on an image, image folder or video:
 
 ```powershell
-uv run python src/predict.py --camera nuscenes --source path/to/image.jpg
+uv run python src/predict.py --source path/to/image.jpg
 ```
 
-`--camera nuscenes` uses the built-in front-camera calibration; `--camera generic` assumes a 70° horizontal field of view and gives approximate distances. Defaults: `weights/best.pt`, 960 px, confidence 0.35, output `runs/predict/`. Existing `--weights`, `--out` and `--imgsz {640,960}` options support exported models and the tested resolutions.
+Inference uses one fixed nuScenes mini front-camera calibration, scaled to the input resolution. Distance estimates assume matching camera geometry; other cameras or cropped images require recalibration. Evaluation uses exact per-frame calibration. Defaults: `weights/best.pt`, 960 px, confidence 0.35, output `runs/predict/`. Options: `--weights`, `--out` and `--imgsz {640,960}`.
+
+We tested a generic 70° camera on 2,485 matched nuScenes detections. Median relative distance errors increased from 6.5% to 13.9% for cones and 9.6% to 17.9% for barriers versus per-frame calibration. We therefore removed generic inference. [Results](results/distance_generic_comparison/distance_eval.json).
 
 Compare PyTorch FP32, OpenVINO FP32 and OpenVINO INT8 at 640 and 960 px:
 
@@ -118,11 +120,11 @@ Upload your image or video, then run annotated inference on the hardcoded H100:
 ```powershell
 uv sync --group dev
 uv run modal volume put navperc-data "D:\path\to\input.mp4" /inputs/input.mp4
-uv run modal run src/modal_app.py::infer --source inputs/input.mp4 --camera generic
+uv run modal run src/modal_app.py::infer --source inputs/input.mp4
 uv run modal volume get navperc-data /runs/yolo26n_960_v3/inference/input runs/modal_inference
 ```
 
-`--source` is the uploaded path relative to the Modal volume root, not your local Windows path. It also accepts an uploaded image folder. `--camera generic` assumes a 70-degree horizontal field of view; use `nuscenes` for matching nuScenes front-camera images. Output video is `input_annotated.mp4`; image inference saves annotated images and `detections.json`.
+`--source` is the uploaded path relative to the Modal volume root, not your local Windows path. It also accepts an uploaded image folder. The same fixed nuScenes front-camera calibration is used locally and on Modal. Output video is `input_annotated.mp4`; image inference saves annotated images and `detections.json`.
 
 The default weights are `/runs/yolo26n_960_v3/weights/best.pt` on `navperc-data`. Use `--name` for another trained run. To change GPUs, edit `gpu="H100"` on the relevant `@app.function(...)` in `src/modal_app.py` (or `src/prune_app.py` for pruning), for example to `gpu="L4"` or `gpu="T4"`. The TensorRT benchmark keeps its explicit `gpu="L4"`. Inference uses CUDA device 0 and retains the distance annotations. No GPU jobs were launched while adding this entry point.
 
