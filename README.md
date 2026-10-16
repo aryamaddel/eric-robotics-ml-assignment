@@ -150,6 +150,17 @@ Saved CPU run on the i5-13400F at 960 px:
 
 Distance uses the pinhole relation **Z = fy × H / h**, class-height priors and a ground-plane fallback for top-truncated boxes. Median relative range error against nuScenes 3D ground truth is **6.5% for cones** and **9.6% for barriers**, using matched detector boxes. Height variation, truncation and camera calibration limit accuracy; stop-sign distance has no equivalent 3D-ground-truth evaluation here.
 
+### Full video pipeline: real-time throughput
+
+Both the local CPU and Modal GPU kept up with the tested **11.65 FPS** video. Using YOLO26n PyTorch at 960 px, each run processed all 224 frames of the same 19.24-second clip:
+
+- **Intel Core i5-13400F CPU:** 11.67 seconds, **19.2 FPS**, or **1.65× playback speed**. After excluding the first 10 startup frames: 22.3 FPS.
+- **Modal H100 GPU:** 6.22 seconds, **36.0 FPS**, or **3.09× playback speed**. After excluding the first 10 startup frames: 74.3 FPS.
+
+Overall timing includes video decoding, detection on every frame, distance estimation, drawing, encoding and writer finalization, including first-frame setup. Model loading is excluded; including it gives 19.1 FPS on CPU and 35.6 FPS on GPU. Modal provisioning, image builds, uploads and downloads are excluded. CPU libraries used their default threading settings.
+
+These single-run measurements demonstrate real-time throughput for this clip; live-stream latency and sustained performance were not tested. CPU throughput was below 30 FPS. The input was the existing annotated tracking demo, so this measures processing speed, not detection accuracy. Raw results: [CPU](results/video_performance/cpu.json) and [H100](results/video_performance/gpu_h100.json). Video inference now saves `performance.json` alongside its output.
+
 ## Geometry and tracking
 
 - **Bird’s-eye view:** calibrated ground-plane homography, implemented in `bev.py`; [example](results/demo/bev_cones.jpg).

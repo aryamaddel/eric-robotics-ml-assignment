@@ -9,6 +9,7 @@ Labels are drawn as "Cone, 1.5m". GPU inference uses src/modal_app.py::infer.
 
 import argparse
 import json
+import time
 from pathlib import Path
 
 import cv2
@@ -62,6 +63,7 @@ def detect(model, estimator_for, frame, conf, imgsz, device="cpu"):
 
 def run(weights, source: Path, out: Path, imgsz=960, device="cpu"):
     """Shared annotated image/video inference for local CPU and Modal GPU."""
+    started = time.perf_counter()
     model = YOLO(weights, task="detect")
     cache = {}
 
@@ -78,7 +80,10 @@ def run(weights, source: Path, out: Path, imgsz=960, device="cpu"):
             raise ValueError(f"Cannot open video: {source}")
         fps = cap.get(cv2.CAP_PROP_FPS) or 10
         writer = None
+        frame_times = []
+        loop_started = time.perf_counter()
         while True:
+            frame_started = time.perf_counter()
             ok, frame = cap.read()
             if not ok:
                 break
@@ -87,10 +92,31 @@ def run(weights, source: Path, out: Path, imgsz=960, device="cpu"):
                 h, w = frame.shape[:2]
                 writer = cv2.VideoWriter(str(out / f"{source.stem}_annotated.mp4"),
                                          cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+                if not writer.isOpened():
+                    raise RuntimeError("Cannot open output video writer")
             writer.write(annotate(frame, dets))
+            frame_times.append(time.perf_counter() - frame_started)
         cap.release()
         if writer:
             writer.release()
+        elapsed = time.perf_counter() - loop_started
+        total = time.perf_counter() - started
+        n = len(frame_times)
+        if not n:
+            raise ValueError(f"No frames decoded: {source}")
+        steady = frame_times[10:]
+        metrics = {
+            "source": str(source), "device": str(device), "imgsz": imgsz,
+            "frames": n, "source_fps": fps, "video_duration_s": n / fps,
+            "pipeline_seconds": elapsed, "pipeline_fps": n / elapsed,
+            "including_model_load_seconds": total, "including_model_load_fps": n / total,
+            "realtime_speedup": (n / fps) / elapsed,
+            "warmup_frames_excluded_from_steady": min(10, n),
+            "steady_pipeline_fps": len(steady) / sum(steady) if steady else None,
+            "timing_scope": "decode, detect, distance, draw, encode; pipeline includes first-frame setup and writer finalization; excludes cloud startup, upload and download",
+        }
+        (out / "performance.json").write_text(json.dumps(metrics, indent=2))
+        print(json.dumps(metrics, indent=2))
     else:
         files = sorted(source.glob("*.jpg")) + sorted(source.glob("*.png")) if source.is_dir() else [source]
         for f in files:

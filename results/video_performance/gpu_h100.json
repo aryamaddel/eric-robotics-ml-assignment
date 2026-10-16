@@ -1,0 +1,16 @@
+{
+  "source": "/data/inputs/tracking_scene-0061.mp4",
+  "device": "0",
+  "imgsz": 960,
+  "frames": 224,
+  "source_fps": 11.645,
+  "video_duration_s": 19.235723486474882,
+  "pipeline_seconds": 6.221733871,
+  "pipeline_fps": 36.00282568241659,
+  "including_model_load_seconds": 6.286099958,
+  "including_model_load_fps": 35.63417723177096,
+  "realtime_speedup": 3.091698212315723,
+  "warmup_frames_excluded_from_steady": 10,
+  "steady_pipeline_fps": 74.3210406282352,
+  "timing_scope": "decode, detect, distance, draw, encode; pipeline includes first-frame setup and writer finalization; excludes cloud startup, upload and download"
+}

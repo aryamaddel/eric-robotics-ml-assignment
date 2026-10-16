@@ -35,9 +35,9 @@ base_image = (
     .env({"NAVPERC_CPUS": str(CPUS)})
 )
 image = (
-    base_image.add_local_file(APP_DIR / "results/stop_sign_audit/teacher_candidates_review.json", "/assets/review.json")
-    .env({"PYTHONPATH": "/root/src"})
+    base_image.env({"PYTHONPATH": "/root/src"})
     .add_local_dir(APP_DIR / "src", "/root/src", copy=True, ignore=["**/__pycache__/**"])
+    .add_local_file(APP_DIR / "results/stop_sign_audit/teacher_candidates_review.json", "/assets/review.json")
 )
 trt_image = (
     base_image.uv_pip_install("tensorrt-cu12", "nvidia-modelopt[onnx]", "onnx", "onnxslim", "onnxruntime-gpu")
@@ -151,7 +151,7 @@ def infer(source: str, name: str = "yolo26n_960_v3"):
     """Annotate a source image, image folder or video uploaded to navperc-data."""
     from predict import run
 
-    path = DATA / source.lstrip("/")
+    path = DATA / source.replace("\\", "/").lstrip("/")
     if not path.exists():
         raise FileNotFoundError(f"Upload the source to navperc-data first: {path}")
     out = DATA / "runs" / name / "inference" / path.stem
